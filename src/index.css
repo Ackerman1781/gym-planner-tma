@@ -2,7 +2,7 @@
 
 :root {
   --volt: #CCFF00;
-  --volt-glow: rgba(204, 255, 0, 0.25);
+  --volt-glow: rgba(204, 255, 0, 0.35);
   --dark-bg: #08090C;
   --dark-card: #11141B;
   --dark-card-hover: #171B24;
@@ -11,12 +11,20 @@
   --text-muted: #8E95A5;
 }
 
-body {
+html, body {
   background-color: var(--dark-bg);
   color: #F3F4F6;
+  overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   touch-action: pan-y;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Critical: prevent iOS & Android input auto-zoom */
+input, select, textarea {
+  font-size: 16px !important;
+  user-select: text;
 }
 
 /* Custom Volt Neon Glow */
@@ -26,6 +34,15 @@ body {
 
 .glow-volt-sm {
   box-shadow: 0 0 12px rgba(204, 255, 0, 0.2);
+}
+
+.glow-volt-border {
+  border-color: #CCFF00;
+  box-shadow: 0 0 16px rgba(204, 255, 0, 0.3);
+}
+
+.icon-glow-volt {
+  filter: drop-shadow(0 0 8px rgba(204, 255, 0, 0.65));
 }
 
 /* Hide scrollbars */
@@ -50,6 +67,8 @@ input[type="number"] {
 /* Press interaction feedback */
 .active-press {
   transition: transform 0.08s ease, filter 0.08s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .active-press:active {
   transform: scale(0.96);

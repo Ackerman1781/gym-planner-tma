@@ -1,214 +1,369 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
-  Play, CalendarCheck2, Dumbbell, Flame, 
-  ArrowRight, Sparkles, Trophy, Zap, ShieldCheck 
+  ArrowRight, CalendarCheck2, Trophy, Plus, Dumbbell, 
+  Trash2, Calendar, Play, Sparkles, X, Check 
 } from 'lucide-react';
+import { PREmblem, PodiumBadge } from './CustomIcons';
 import { haptic } from '../services/telegram';
 
-export const HomeTab = ({ 
-  tasks, 
-  programs, 
-  records, 
-  setTab, 
-  onStartWorkout 
+export const HomeTab = ({
+  tasks,
+  programs,
+  squad,
+  records,
+  onSaveRecord,
+  onDeleteRecord,
+  setTab,
+  onStartWorkout
 }) => {
   const todayStr = new Date().toISOString().split('T')[0];
   const todayTasks = tasks.filter((t) => t.date === todayStr);
-  const completedCount = todayTasks.filter((t) => t.completed).length;
+  const completedTasks = todayTasks.filter((t) => t.completed).length;
   const progressPercent = todayTasks.length > 0 
-    ? Math.round((completedCount / todayTasks.length) * 100) 
+    ? Math.round((completedTasks / todayTasks.length) * 100) 
     : 0;
 
-  // Next suggested workout (first day of first program)
+  // Find user in squad to display ranking
+  const sortedSquad = [...squad].sort((a, b) => (b.streak || 0) - (a.streak || 0));
+  const userRankIdx = sortedSquad.findIndex((s) => s.isMe);
+  const userRankPosition = userRankIdx >= 0 ? userRankIdx + 1 : 1;
+
+  // Suggested workout
   const defaultProg = programs[0];
   const nextDay = defaultProg?.days?.[0];
 
-  const calculateStreak = () => {
-    let streak = 0;
-    let d = new Date();
-    while (true) {
-      const dStr = d.toISOString().split('T')[0];
-      const hasCompleted = tasks.some((t) => t.date === dStr && t.completed);
-      if (hasCompleted) {
-        streak += 1;
-        d.setDate(d.getDate() - 1);
-      } else {
-        if (dStr === todayStr && streak === 0) {
-          d.setDate(d.getDate() - 1);
-          continue;
-        }
-        break;
-      }
-    }
-    return Math.max(streak, 1);
+  // Modal to add new 1RM Record
+  const [isAddingPR, setIsAddingPR] = useState(false);
+  const [prExercise, setPrExercise] = useState('Жим штанги лежачи');
+  const [customExercise, setCustomExercise] = useState('');
+  const [prWeight, setPrWeight] = useState(100);
+  const [prDate, setPrDate] = useState(todayStr);
+
+  const handleCreatePR = (e) => {
+    e.preventDefault();
+    const finalExerciseName = prExercise === 'custom' 
+      ? (customExercise.trim() || 'Власна вправа') 
+      : prExercise;
+
+    if (!finalExerciseName) return;
+
+    haptic.impact('heavy');
+    const newRecord = {
+      id: 'pr_' + Date.now(),
+      exercise: finalExerciseName,
+      weight: parseFloat(prWeight) || 0,
+      reps: 1,
+      date: prDate
+    };
+
+    onSaveRecord(newRecord);
+    setIsAddingPR(false);
+    setCustomExercise('');
+    haptic.success();
   };
 
   return (
-    <div className="flex-1 pb-28 pt-4 px-4 max-w-md mx-auto w-full animate-in fade-in duration-200">
-      {/* Hero Welcome Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-[#161B26] to-[#0E1118] border-2 border-[#262D3E] rounded-3xl p-5 mb-5 shadow-2xl">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-[#CCFF00]/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        {/* Big Centered Hero Logo */}
-        <div className="flex flex-col items-center text-center">
-          <div className="relative w-20 h-20 mb-3 flex items-center justify-center">
-            <svg
-              width="76"
-              height="76"
-              viewBox="0 0 48 48"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="filter drop-shadow-[0_0_18px_rgba(204,255,0,0.45)]"
-            >
-              <polygon
-                points="24,4 43,14 43,34 24,44 5,34 5,14"
-                fill="#12151D"
-                stroke="#CCFF00"
-                strokeWidth="2.5"
-                strokeLinejoin="round"
-              />
-              <polygon
-                points="24,10 38,18 38,30 24,38 10,30 10,18"
-                fill="#08090C"
-                stroke="#2B3142"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M26 13L16 26H24L22 35L32 22H24L26 13Z"
-                fill="#CCFF00"
-              />
-            </svg>
-          </div>
-
-          <h2 className="text-2xl font-black text-white uppercase italic tracking-wider font-['Space_Grotesk',sans-serif] m-0">
-            ACKERMAN <span className="text-[#CCFF00]">PROGRESS</span>
-          </h2>
-          
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#CCFF00]/15 text-[#CCFF00] border border-[#CCFF00]/30 text-[10px] font-black uppercase tracking-widest my-2.5 glow-volt-sm">
-            <Sparkles size={11} />
-            <span>DAILY LIFE & ATHLETIC ENGINE</span>
-          </div>
-
-          {/* Mission statement requested by user */}
-          <p className="text-xs font-bold text-[#A6B0C3] leading-relaxed max-w-xs mt-1">
-            Проєкт створений для полегшення твого повсякденного життя, щоденної залізної дисципліни та максимального фізичного прогресу.
-          </p>
+    <div className="flex-1 pb-28 pt-3 px-4 max-w-md mx-auto w-full animate-in fade-in duration-150">
+      {/* Project Description Banner */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#141824] via-[#0E1118] to-[#08090C] border border-[#232734] rounded-3xl p-5 mb-4 shadow-xl">
+        <div className="absolute top-0 right-0 w-36 h-36 bg-[#CCFF00]/10 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#CCFF00]/15 border border-[#CCFF00]/40 text-[#CCFF00] text-[10px] font-black uppercase tracking-widest mb-2.5 drop-shadow-[0_0_6px_rgba(204,255,0,0.3)]">
+          <Sparkles size={12} />
+          <span>DAILY LIFE & DISCIPLINE</span>
         </div>
+
+        <p className="text-sm font-bold text-white leading-relaxed">
+          Проект створений для полегшення повсякденного життя та залізної дисципліни. Твій ритм. Твій прогрес.
+        </p>
       </div>
 
-      {/* Quick Action Cards Grid */}
-      <div className="space-y-4 mb-5">
-        {/* Today's Planner Snapshot */}
-        <div 
-          onClick={() => { haptic.selection(); setTab('planner'); }}
-          className="bg-[#12151D] border border-[#232734] hover:border-[#CCFF00]/40 rounded-3xl p-4 shadow-lg cursor-pointer active-press transition-all"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-[#CCFF00]/15 text-[#CCFF00] flex items-center justify-center border border-[#CCFF00]/30 glow-volt-sm">
-                <CalendarCheck2 size={20} strokeWidth={2.5} />
-              </div>
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#8E95A5] block">
-                  ПЛАНИ НА СЬОГОДНІ
-                </span>
-                <h3 className="text-base font-black text-white uppercase italic font-['Space_Grotesk',sans-serif]">
-                  {completedCount} з {todayTasks.length} ЗАВЕРШЕНО
-                </h3>
-              </div>
+      {/* Widget "Сьогодні за планом" */}
+      <div className="space-y-3 mb-5">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Daily Tasks Status */}
+          <div
+            onClick={() => {
+              haptic.selection();
+              setTab('planner');
+            }}
+            className="bg-[#11141D] border border-[#222838] hover:border-[#CCFF00]/50 rounded-3xl p-4 flex flex-col justify-between active-press cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#8E95A5] font-stat">
+                ПЛАНИ
+              </span>
+              <CalendarCheck2 size={18} className="text-[#CCFF00]" />
             </div>
 
-            <div className="p-2 rounded-xl bg-[#1A1F2C] text-[#CCFF00]">
-              <ArrowRight size={18} strokeWidth={2.5} />
-            </div>
-          </div>
-
-          <div className="w-full h-2.5 bg-[#08090C] rounded-full overflow-hidden border border-[#232734] p-0.5">
-            <div
-              className="h-full bg-[#CCFF00] rounded-full transition-all duration-300 glow-volt-sm"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Quick Workout Launcher */}
-        {nextDay && defaultProg && (
-          <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 shadow-lg">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-[#CCFF00]/15 text-[#CCFF00] flex items-center justify-center border border-[#CCFF00]/30 glow-volt-sm">
-                  <Dumbbell size={20} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#8E95A5] block">
-                    ГОТОВИЙ ДО ЗАЛУ?
-                  </span>
-                  <h3 className="text-base font-black text-white uppercase italic font-['Space_Grotesk',sans-serif]">
-                    {nextDay.name}
-                  </h3>
-                </div>
+            <div>
+              <div className="text-2xl font-black font-stat text-white">
+                {completedTasks}/{todayTasks.length}
               </div>
-
-              <span className="text-[11px] font-bold text-[#8E95A5] uppercase font-stat">
-                {nextDay.exercises?.length || 0} ВПРАВ
+              <span className="text-xs font-bold text-[#8E95A5] uppercase block mt-0.5">
+                Виконано на сьогодні
               </span>
             </div>
 
-            <button
-              onClick={() => {
-                haptic.impact('heavy');
-                onStartWorkout(defaultProg, nextDay);
+            <div className="w-full h-1.5 bg-[#08090C] rounded-full overflow-hidden mt-3 border border-[#1E2330]">
+              <div
+                className="h-full bg-[#CCFF00] rounded-full transition-all duration-300 drop-shadow-[0_0_4px_rgba(204,255,0,0.6)]"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Squad Rank Status */}
+          <div
+            onClick={() => {
+              haptic.selection();
+              setTab('squad');
+            }}
+            className="bg-[#11141D] border border-[#222838] hover:border-[#CCFF00]/50 rounded-3xl p-4 flex flex-col justify-between active-press cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#8E95A5] font-stat">
+                SQUAD ТОР
+              </span>
+              <PodiumBadge place={userRankPosition} size={18} />
+            </div>
+
+            <div>
+              <div className="text-2xl font-black font-stat text-[#CCFF00] drop-shadow-[0_0_6px_rgba(204,255,0,0.3)]">
+                #{userRankPosition}
+              </div>
+              <span className="text-xs font-bold text-[#8E95A5] uppercase block mt-0.5">
+                У рейтингу команди
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-[10px] font-black uppercase text-[#8E95A5] mt-3 font-stat">
+              <span>{sortedSquad.length} УЧАСНИКІВ</span>
+              <ArrowRight size={12} className="text-[#CCFF00]" />
+            </div>
+          </div>
+        </div>
+
+        {/* Atmospheric Quick Workout Launcher Banner */}
+        {nextDay && defaultProg && (
+          <div className="relative overflow-hidden rounded-3xl border border-[#262D3E] shadow-xl group">
+            {/* Dark Gym Backdrop Photo with Gradient Overlay */}
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+              style={{
+                backgroundImage:
+                  'url("https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80")'
               }}
-              className="w-full py-3.5 bg-[#CCFF00] text-black rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 glow-volt active-press transition-all"
-            >
-              <Play size={16} fill="currentColor" />
-              <span>РОЗПОЧАТИ ТРЕНУВАННЯ ⚡</span>
-            </button>
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#08090C] via-[#0E1118]/85 to-[#08090C]/60" />
+
+            <div className="relative p-5 z-10 flex flex-col justify-between min-h-[160px]">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-1 rounded-xl bg-[#CCFF00] text-black font-black text-[10px] uppercase tracking-wider font-stat drop-shadow-[0_0_8px_rgba(204,255,0,0.4)]">
+                  ACKERMAN WORKOUT
+                </span>
+                <span className="text-xs font-black uppercase text-[#A6B0C3] font-stat">
+                  {nextDay.exercises?.length || 0} ВПРАВ
+                </span>
+              </div>
+
+              <div className="my-2">
+                <h3 className="text-xl font-black text-white uppercase italic tracking-tight font-['Space_Grotesk',sans-serif]">
+                  {nextDay.name}
+                </h3>
+                <span className="text-xs font-bold text-[#A6B0C3]">
+                  {defaultProg.name}
+                </span>
+              </div>
+
+              <button
+                onClick={() => {
+                  haptic.impact('heavy');
+                  onStartWorkout(defaultProg, nextDay);
+                }}
+                style={{ minHeight: '48px' }}
+                className="w-full bg-[#CCFF00] active-press text-black rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 glow-volt-sm"
+              >
+                <Play size={16} fill="currentColor" />
+                <span>РОЗПОЧАТИ ТРЕНУВАННЯ</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Stats & Personal Records Widget */}
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        {/* Streak Counter */}
-        <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#8E95A5]">
-              ДИСЦИПЛІНА
-            </span>
-            <Flame size={18} className="text-[#CCFF00] fill-[#CCFF00] animate-bounce" />
-          </div>
-          <div>
-            <div className="text-3xl font-black font-stat text-[#CCFF00] glow-volt-sm">
-              {calculateStreak()}
+      {/* Block "Календар Рекордів (Жим та база на 1 раз)" */}
+      <div className="bg-[#11141D] border border-[#222838] rounded-3xl p-4 shadow-xl">
+        <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center gap-2">
+            <PREmblem size={26} />
+            <div>
+              <h3 className="text-base font-black text-white uppercase italic font-['Space_Grotesk',sans-serif] leading-tight">
+                Календар Рекордів (1RM)
+              </h3>
+              <span className="text-[10px] font-bold text-[#8E95A5] uppercase tracking-wider font-stat">
+                Твій максимальний жим та база
+              </span>
             </div>
-            <span className="text-xs font-bold text-white uppercase mt-0.5 block">
-              Днів поспіль у формі
-            </span>
           </div>
+
+          <button
+            onClick={() => {
+              haptic.selection();
+              setIsAddingPR(true);
+            }}
+            style={{ minHeight: '36px' }}
+            className="px-3 py-1.5 bg-[#CCFF00] text-black font-black text-xs uppercase tracking-wider rounded-xl active-press glow-volt-sm flex items-center gap-1 font-stat"
+          >
+            <Plus size={14} strokeWidth={3} />
+            <span>+ Рекорд</span>
+          </button>
         </div>
 
-        {/* PR Quick Link */}
-        <div 
-          onClick={() => { haptic.selection(); setTab('settings'); }}
-          className="bg-[#12151D] border border-[#232734] hover:border-[#CCFF00]/40 rounded-3xl p-4 flex flex-col justify-between cursor-pointer active-press"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#8E95A5]">
-              РЕКОРДИ (PR)
-            </span>
-            <Trophy size={18} className="text-[#CCFF00]" />
-          </div>
-          <div>
-            <div className="text-3xl font-black font-stat text-white">
-              {records?.[0]?.weight || 95} <span className="text-sm font-normal text-[#CCFF00]">КГ</span>
+        {/* PR Timeline List */}
+        <div className="space-y-2.5">
+          {records.length === 0 ? (
+            <div className="text-center py-6 text-xs font-bold text-[#8E95A5] uppercase tracking-wider">
+              Рекордів ще не записано
             </div>
-            <span className="text-xs font-bold text-[#8E95A5] uppercase mt-0.5 block truncate">
-              {records?.[0]?.exercise || 'Жим штанги'}
-            </span>
-          </div>
+          ) : (
+            records.map((rec) => (
+              <div
+                key={rec.id}
+                className="bg-[#08090C] border border-[#1E2330] rounded-2xl p-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#CCFF00]/10 border border-[#CCFF00]/30 flex items-center justify-center text-[#CCFF00] font-stat font-black text-xs">
+                    1RM
+                  </div>
+                  <div>
+                    <h4 className="font-black text-white text-sm uppercase leading-tight font-['Space_Grotesk',sans-serif]">
+                      {rec.exercise}
+                    </h4>
+                    <span className="text-[10px] font-bold text-[#8E95A5] flex items-center gap-1 mt-0.5 font-stat">
+                      <Calendar size={11} /> {rec.date}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <span className="text-base font-black font-stat text-[#CCFF00] drop-shadow-[0_0_6px_rgba(204,255,0,0.3)]">
+                      {rec.weight} <span className="text-xs font-normal text-white">КГ</span>
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      haptic.impact('medium');
+                      onDeleteRecord(rec.id);
+                    }}
+                    className="p-1.5 text-[#6F778B] hover:text-rose-400 active-press"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
+
+      {/* Add PR Modal */}
+      {isAddingPR && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-3 animate-in fade-in duration-150">
+          <div className="bg-[#0E1118] border-2 border-[#CCFF00] rounded-3xl w-full max-w-md p-5 shadow-2xl relative">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#232734]">
+              <div className="flex items-center gap-2">
+                <PREmblem size={24} />
+                <h3 className="text-base font-black text-white uppercase italic font-['Space_Grotesk',sans-serif]">
+                  ЗАПИСАТИ НОВИЙ РЕКОРД (1RM)
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsAddingPR(false)}
+                className="w-8 h-8 rounded-xl bg-[#171B26] text-[#8E95A5] hover:text-white flex items-center justify-center active-press"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreatePR} className="space-y-3.5">
+              <div>
+                <label className="text-[11px] font-black uppercase text-[#8E95A5] tracking-wider block mb-1">
+                  ОБЕРИ ВПРАВУ
+                </label>
+                <select
+                  value={prExercise}
+                  onChange={(e) => setPrExercise(e.target.value)}
+                  className="w-full bg-[#141824] border border-[#262E40] text-white rounded-2xl px-4 py-3 text-base font-bold outline-none"
+                >
+                  <option value="Жим штанги лежачи">Жим штанги лежачи</option>
+                  <option value="Присідання зі штангою">Присідання зі штангою</option>
+                  <option value="Станова тяга">Станова тяга</option>
+                  <option value="Армійський жим">Армійський жим</option>
+                  <option value="custom">+ Власна вправа</option>
+                </select>
+              </div>
+
+              {prExercise === 'custom' && (
+                <div>
+                  <label className="text-[11px] font-black uppercase text-[#8E95A5] tracking-wider block mb-1">
+                    НАЗВА ВПРАВИ
+                  </label>
+                  <input
+                    type="text"
+                    value={customExercise}
+                    onChange={(e) => setCustomExercise(e.target.value)}
+                    placeholder="Наприклад: Підйом на біцепс"
+                    className="w-full bg-[#141824] border border-[#262E40] text-white rounded-2xl px-4 py-3 text-base font-bold outline-none"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-black uppercase text-[#8E95A5] tracking-wider block mb-1 font-stat">
+                    ВАГА НА 1 РАЗ (КГ)
+                  </label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    value={prWeight}
+                    onChange={(e) => setPrWeight(e.target.value)}
+                    className="w-full bg-[#141824] border border-[#262E40] text-[#CCFF00] font-stat font-black text-center rounded-2xl px-4 py-3 text-lg outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-black uppercase text-[#8E95A5] tracking-wider block mb-1 font-stat">
+                    ДАТА РЕКОРДУ
+                  </label>
+                  <input
+                    type="date"
+                    value={prDate}
+                    onChange={(e) => setPrDate(e.target.value)}
+                    className="w-full bg-[#141824] border border-[#262E40] text-white font-bold text-center rounded-2xl px-3 py-3 text-sm outline-none"
+                  />
+                </div>
+              </div>
+
+              <p className="text-[11px] font-bold text-[#8E95A5]">
+                Примітка: цей рекорд автоматично оновить твій показник жиму у таблиці лідерів Squad!
+              </p>
+
+              <button
+                type="submit"
+                style={{ minHeight: '48px' }}
+                className="w-full bg-[#CCFF00] active-press text-black rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 glow-volt-sm"
+              >
+                <Check size={16} strokeWidth={3} />
+                <span>ЗБЕРЕГТИ РЕКОРД</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

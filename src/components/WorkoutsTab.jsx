@@ -1,24 +1,43 @@
 import React, { useState } from 'react';
 import { 
   Play, Plus, Dumbbell, ChevronDown, ChevronUp, 
-  Trash2, Edit2, Check, Flame 
+  Trash2, Edit2, Check, X 
 } from 'lucide-react';
 import { haptic } from '../services/telegram';
+
+const MUSCLE_GROUPS = [
+  { name: 'Груди', color: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
+  { name: 'Верх грудей', color: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
+  { name: 'Спина', color: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
+  { name: 'Широчайші', color: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
+  { name: 'Ноги', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+  { name: 'Біцепс стегна', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+  { name: 'Плечі', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+  { name: 'Руки', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+  { name: 'Біцепс', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+  { name: 'Тріцепс', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+  { name: 'Прес', color: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' }
+];
+
+const getMuscleBadgeStyle = (muscle) => {
+  const found = MUSCLE_GROUPS.find((m) => m.name.toLowerCase() === (muscle || '').toLowerCase());
+  return found ? found.color : 'bg-[#CCFF00]/15 text-[#CCFF00] border-[#CCFF00]/30';
+};
 
 export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
   const [expandedProgramId, setExpandedProgramId] = useState(programs[0]?.id || null);
   const [isCreatingProgram, setIsCreatingProgram] = useState(false);
   const [newProgramName, setNewProgramName] = useState('');
-  
-  // Adding exercise modal/form
-  const [addingExerciseToDay, setAddingExerciseToDay] = useState(null);
+
+  // Exercise creation state
+  const [addingExerciseToDay, setAddingExerciseToDay] = useState(null); // { progId, dayId }
   const [newExName, setNewExName] = useState('');
-  const [newExMuscle, setNewExMuscle] = useState('');
-  const [newExWeight, setNewExWeight] = useState(60);
-  const [newExReps, setNewExReps] = useState(10);
+  const [newExMuscle, setNewExMuscle] = useState('Груди');
+  const [newExWeight, setNewExWeight] = useState(80);
+  const [newExReps, setNewExReps] = useState(8);
 
   // Quick edit record modal/state for an exercise
-  const [editingEx, setEditingEx] = useState(null); // { programId, dayId, exId, weight, reps }
+  const [editingEx, setEditingEx] = useState(null); // { progId, dayId, exId, weight, reps }
 
   const toggleExpand = (id) => {
     haptic.selection();
@@ -33,7 +52,7 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
     const newProg = {
       id: 'prog_' + Date.now(),
       name: newProgramName.trim(),
-      description: 'Користувацька програма тренувань',
+      description: 'Власна тренувальна програма',
       days: [
         {
           id: 'day_' + Date.now(),
@@ -89,9 +108,9 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                   {
                     id: 'ex_' + Date.now(),
                     name: newExName.trim(),
-                    muscle: newExMuscle.trim() || 'Загальне',
+                    muscle: newExMuscle.trim() || 'Груди',
                     lastWeight: parseFloat(newExWeight) || 0,
-                    lastReps: parseInt(newExReps, 10) || 10
+                    lastReps: parseInt(newExReps, 10) || 8
                   }
                 ]
               };
@@ -106,7 +125,6 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
     setPrograms(updated);
     setAddingExerciseToDay(null);
     setNewExName('');
-    setNewExMuscle('');
     haptic.success();
   };
 
@@ -173,14 +191,14 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
   };
 
   return (
-    <div className="flex-1 pb-28 pt-4 px-4 max-w-md mx-auto w-full">
+    <div className="flex-1 pb-28 pt-3 px-4 max-w-md mx-auto w-full animate-in fade-in duration-150">
       {/* Top Banner */}
-      <div className="flex items-center justify-between mb-5 bg-[#12151D] border border-[#232734] rounded-3xl p-4 shadow-lg">
+      <div className="bg-[#11141D] border border-[#222838] rounded-3xl p-4 mb-4 shadow-xl flex items-center justify-between">
         <div>
-          <span className="text-[11px] font-black uppercase tracking-widest text-[#8E95A5] block">
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#8E95A5] block font-stat">
             СИЛОВИЙ БЛОК
           </span>
-          <h2 className="text-2xl font-black text-white uppercase italic tracking-tight font-['Space_Grotesk',sans-serif]">
+          <h2 className="text-xl font-black text-white uppercase italic tracking-tight font-['Space_Grotesk',sans-serif]">
             ПРОГРАМИ ТРЕНУВАНЬ
           </h2>
         </div>
@@ -189,46 +207,50 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
             haptic.selection();
             setIsCreatingProgram(!isCreatingProgram);
           }}
-          className="px-4 py-2.5 bg-[#CCFF00] active-press text-black rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 glow-volt-sm"
+          style={{ minHeight: '44px' }}
+          className="px-3.5 py-2 bg-[#CCFF00] active-press text-black rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 glow-volt-sm font-stat"
         >
           <Plus size={16} strokeWidth={3} />
           <span>СТВОРИТИ</span>
         </button>
       </div>
 
-      {/* New Program Input Card */}
+      {/* New Program Input */}
       {isCreatingProgram && (
-        <form onSubmit={handleCreateProgram} className="bg-[#12151D] border-2 border-[#CCFF00] rounded-3xl p-4 mb-5 shadow-2xl animate-in fade-in">
-          <h3 className="text-sm font-black text-white uppercase tracking-wider mb-2">
-            Нова програма тренувань
-          </h3>
+        <form onSubmit={handleCreateProgram} className="bg-[#11141D] border-2 border-[#CCFF00] rounded-3xl p-4 mb-4 shadow-2xl space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black uppercase text-white font-stat">
+              НОВА ПРОГРАМА / СПЛІТ
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsCreatingProgram(false)}
+              className="text-[#8E95A5] hover:text-white"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
           <input
             type="text"
             value={newProgramName}
             onChange={(e) => setNewProgramName(e.target.value)}
-            placeholder="Назва спліту (напр: Силовий 3-денний)"
-            className="w-full bg-[#08090C] border border-[#232734] rounded-2xl px-4 py-3 text-sm font-bold text-white placeholder-[#6F778B] focus:outline-none focus:border-[#CCFF00] mb-3"
+            placeholder="Наприклад: Спліт (Груди + Руки)"
+            className="w-full bg-[#08090C] border border-[#222838] focus:border-[#CCFF00] rounded-2xl px-4 py-3 text-base font-bold text-white outline-none"
           />
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setIsCreatingProgram(false)}
-              className="px-4 py-2 text-xs font-bold text-[#8E95A5] rounded-xl uppercase"
-            >
-              Скасувати
-            </button>
-            <button
-              type="submit"
-              disabled={!newProgramName.trim()}
-              className="px-5 py-2.5 bg-[#CCFF00] text-black font-black text-xs uppercase tracking-wider rounded-xl glow-volt-sm disabled:opacity-40"
-            >
-              Створити
-            </button>
-          </div>
+
+          <button
+            type="submit"
+            style={{ minHeight: '44px' }}
+            className="w-full bg-[#CCFF00] text-black rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active-press glow-volt-sm"
+          >
+            <Check size={16} strokeWidth={3} />
+            <span>СТВОРИТИ ПРОГРАМУ</span>
+          </button>
         </form>
       )}
 
-      {/* Programs List (Gymshark / Hevy Style) */}
+      {/* Programs List */}
       <div className="space-y-4">
         {programs.map((program) => {
           const isExpanded = expandedProgramId === program.id;
@@ -236,24 +258,24 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
           return (
             <div
               key={program.id}
-              className="bg-[#12151D] border border-[#232734] rounded-3xl overflow-hidden shadow-md transition-all"
+              className="bg-[#11141D] border border-[#222838] rounded-3xl p-4 shadow-xl"
             >
               {/* Program Header */}
               <div
+                className="flex items-center justify-between cursor-pointer select-none"
                 onClick={() => toggleExpand(program.id)}
-                className="p-4 flex items-center justify-between cursor-pointer select-none active:bg-[#191D28]"
               >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-[#CCFF00]/10 border border-[#CCFF00]/30 text-[#CCFF00] flex items-center justify-center shrink-0">
-                    <Dumbbell size={24} strokeWidth={2.5} />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#CCFF00]/15 border border-[#CCFF00]/30 text-[#CCFF00] flex items-center justify-center">
+                    <Dumbbell size={20} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-white uppercase italic leading-tight m-0 font-['Space_Grotesk',sans-serif]">
+                    <h3 className="text-base font-black text-white uppercase italic tracking-tight font-['Space_Grotesk',sans-serif]">
                       {program.name}
                     </h3>
-                    <p className="text-xs font-extrabold text-[#8E95A5] uppercase tracking-wider mt-0.5">
-                      {program.days?.length || 0} {program.days?.length === 1 ? 'ДЕНЬ' : 'ДНІВ'} ТРЕНУВАНЬ
-                    </p>
+                    <span className="text-[10px] font-bold text-[#8E95A5] uppercase font-stat">
+                      {program.days?.length || 0} ТРЕНУВАЛЬНИХ ДНІВ
+                    </span>
                   </div>
                 </div>
 
@@ -263,29 +285,31 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                       e.stopPropagation();
                       handleDeleteProgram(program.id);
                     }}
-                    className="p-2 text-[#6F778B] hover:text-rose-400"
+                    className="p-2 text-[#6F778B] hover:text-rose-400 active-press"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} />
                   </button>
-                  {isExpanded ? <ChevronUp size={24} className="text-[#8E95A5]" /> : <ChevronDown size={24} className="text-[#8E95A5]" />}
+                  <div className="p-2 text-[#8E95A5]">
+                    {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  </div>
                 </div>
               </div>
 
-              {/* Days Body */}
+              {/* Program Days */}
               {isExpanded && (
-                <div className="px-4 pb-4 pt-1 border-t border-[#1C202C] space-y-4">
+                <div className="mt-4 pt-4 border-t border-[#1C212E] space-y-4 animate-in fade-in duration-150">
                   {program.days?.map((day) => (
                     <div
                       key={day.id}
-                      className="bg-[#08090C] border border-[#232734] rounded-3xl p-4 shadow-sm"
+                      className="bg-[#08090C] border border-[#1E2330] rounded-3xl p-4 shadow-sm"
                     >
                       <div className="flex items-center justify-between mb-3.5">
                         <div>
-                          <h4 className="text-base font-black text-white uppercase italic flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#CCFF00]"></span>
+                          <h4 className="text-base font-black text-white uppercase italic flex items-center gap-2 font-['Space_Grotesk',sans-serif]">
+                            <span className="w-2 h-2 rounded-full bg-[#CCFF00] drop-shadow-[0_0_4px_rgba(204,255,0,0.8)]" />
                             {day.name}
                           </h4>
-                          <span className="text-xs font-bold text-[#8E95A5] uppercase tracking-wider">
+                          <span className="text-[10px] font-bold text-[#8E95A5] uppercase tracking-wider font-stat">
                             {day.exercises?.length || 0} ВПРАВ
                           </span>
                         </div>
@@ -296,140 +320,170 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                             haptic.impact('heavy');
                             onStartWorkout(program, day);
                           }}
-                          className="px-4 py-2.5 bg-[#CCFF00] active-press text-black rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 glow-volt-sm transition-all"
+                          style={{ minHeight: '40px' }}
+                          className="px-4 py-2 bg-[#CCFF00] active-press text-black rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 glow-volt-sm"
                         >
-                          <Play size={15} fill="currentColor" />
+                          <Play size={14} fill="currentColor" />
                           <span>ПОЧАТИ</span>
                         </button>
                       </div>
 
-                      {/* Exercises List (Gymshark style: Exercise + Muscle + Last Record: 80 kg × 8) */}
-                      <div className="space-y-2.5 mb-3.5">
-                        {day.exercises?.map((ex, idx) => {
-                          const isEditingThis = editingEx && editingEx.exId === ex.id;
+                      {/* Exercises List (Gymshark style: Exercise + Muscle Badge + Last Performance [ 85 КГ ] × [ 8 РАЗІВ ]) */}
+                      <div className="space-y-2 mb-3">
+                        {day.exercises?.length === 0 ? (
+                          <div className="text-center py-4 text-xs font-bold text-[#8E95A5] uppercase tracking-wider">
+                            У цьому дні ще немає вправ
+                          </div>
+                        ) : (
+                          day.exercises.map((ex, idx) => {
+                            const isEditingThis = editingEx && editingEx.exId === ex.id;
+                            const badgeStyle = getMuscleBadgeStyle(ex.muscle);
 
-                          return (
-                            <div
-                              key={ex.id || idx}
-                              className="p-3 rounded-2xl bg-[#12151D] border border-[#1F2432] flex items-center justify-between"
-                            >
-                              <div className="flex items-center gap-3 min-w-0">
-                                <span className="text-[#CCFF00] font-stat font-extrabold text-xs w-5">
-                                  {idx < 9 ? `0${idx + 1}` : idx + 1}
-                                </span>
-                                <div>
-                                  <span className="font-bold text-white text-sm block truncate">
-                                    {ex.name}
+                            return (
+                              <div
+                                key={ex.id || idx}
+                                className="p-3 rounded-2xl bg-[#11141D] border border-[#1E2330] flex items-center justify-between"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0 mr-2">
+                                  <span className="text-[#CCFF00] font-stat font-extrabold text-xs w-4">
+                                    {idx + 1}
                                   </span>
-                                  <span className="text-[11px] font-extrabold text-[#8E95A5] uppercase tracking-wider">
-                                    {ex.muscle || 'Загальне'}
-                                  </span>
+                                  <div className="min-w-0">
+                                    <span className="font-bold text-white text-sm block truncate">
+                                      {ex.name}
+                                    </span>
+                                    <span className={`inline-block px-2 py-0.5 rounded-md border text-[9px] font-black uppercase tracking-wider mt-0.5 font-stat ${badgeStyle}`}>
+                                      {ex.muscle || 'Груди'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Right side: "Останній раз робив: [ 85 КГ ] × [ 8 РАЗІВ ]" */}
+                                <div className="flex items-center gap-1.5">
+                                  {isEditingThis ? (
+                                    <div className="flex items-center gap-1 bg-[#08090C] border border-[#CCFF00] rounded-xl p-1">
+                                      <input
+                                        type="number"
+                                        inputMode="decimal"
+                                        step="0.5"
+                                        value={editingEx.weight}
+                                        onChange={(e) => setEditingEx({ ...editingEx, weight: e.target.value })}
+                                        className="w-12 bg-[#141824] text-center font-stat font-bold text-xs text-white rounded p-1 outline-none"
+                                        placeholder="кг"
+                                      />
+                                      <span className="text-xs text-[#8E95A5]">×</span>
+                                      <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        value={editingEx.reps}
+                                        onChange={(e) => setEditingEx({ ...editingEx, reps: e.target.value })}
+                                        className="w-10 bg-[#141824] text-center font-stat font-bold text-xs text-white rounded p-1 outline-none"
+                                        placeholder="раз"
+                                      />
+                                      <button
+                                        onClick={() => handleSaveQuickRecord(program.id, day.id, ex.id, editingEx.weight, editingEx.reps)}
+                                        className="p-1 bg-[#CCFF00] text-black rounded font-bold"
+                                      >
+                                        <Check size={14} strokeWidth={3} />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => {
+                                        haptic.selection();
+                                        setEditingEx({
+                                          progId: program.id,
+                                          dayId: day.id,
+                                          exId: ex.id,
+                                          weight: ex.lastWeight || 0,
+                                          reps: ex.lastReps || 0
+                                        });
+                                      }}
+                                      className="px-2.5 py-1.5 bg-[#08090C] hover:bg-[#141824] border border-[#232734] hover:border-[#CCFF00]/50 rounded-xl text-right active-press transition-all"
+                                      title="Натисни для швидкого редагування"
+                                    >
+                                      <span className="text-[9px] uppercase font-bold text-[#8E95A5] block">
+                                        Останній раз:
+                                      </span>
+                                      <div className="font-stat font-black text-xs text-[#CCFF00] flex items-center gap-1">
+                                        <span className="bg-[#141824] px-1.5 py-0.5 rounded border border-[#232734]">
+                                          {ex.lastWeight || 0} КГ
+                                        </span>
+                                        <span className="text-[#8E95A5]">×</span>
+                                        <span className="bg-[#141824] px-1.5 py-0.5 rounded border border-[#232734]">
+                                          {ex.lastReps || 0} РАЗІВ
+                                        </span>
+                                      </div>
+                                    </button>
+                                  )}
+
+                                  <button
+                                    onClick={() => handleDeleteExercise(program.id, day.id, ex.id)}
+                                    className="p-1.5 text-[#6F778B] hover:text-rose-400 active-press"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
                                 </div>
                               </div>
-
-                              {/* Right side: Last recorded weight and reps (Editable in 1 click!) */}
-                              <div className="flex items-center gap-2">
-                                {isEditingThis ? (
-                                  <div className="flex items-center gap-1 bg-[#08090C] border border-[#CCFF00] rounded-xl p-1">
-                                    <input
-                                      type="number"
-                                      value={editingEx.weight}
-                                      onChange={(e) => setEditingEx({ ...editingEx, weight: e.target.value })}
-                                      className="w-12 bg-[#12151D] text-center font-stat font-bold text-xs text-white rounded p-1"
-                                      placeholder="кг"
-                                    />
-                                    <span className="text-xs text-[#8E95A5]">×</span>
-                                    <input
-                                      type="number"
-                                      value={editingEx.reps}
-                                      onChange={(e) => setEditingEx({ ...editingEx, reps: e.target.value })}
-                                      className="w-10 bg-[#12151D] text-center font-stat font-bold text-xs text-white rounded p-1"
-                                      placeholder="раз"
-                                    />
-                                    <button
-                                      onClick={() => handleSaveQuickRecord(program.id, day.id, ex.id, editingEx.weight, editingEx.reps)}
-                                      className="p-1 bg-[#CCFF00] text-black rounded font-bold"
-                                    >
-                                      <Check size={14} strokeWidth={3} />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() => {
-                                      haptic.selection();
-                                      setEditingEx({
-                                        programId: program.id,
-                                        dayId: day.id,
-                                        exId: ex.id,
-                                        weight: ex.lastWeight || 0,
-                                        reps: ex.lastReps || 0
-                                      });
-                                    }}
-                                    className="px-2.5 py-1.5 bg-[#08090C] hover:bg-[#182015] border border-[#2B3142] hover:border-[#CCFF00]/40 rounded-xl text-right active-press transition-all"
-                                    title="Натисни, щоб змінити останню вагу"
-                                  >
-                                    <span className="text-[9px] uppercase font-bold text-[#8E95A5] block">
-                                      Останній раз:
-                                    </span>
-                                    <span className="font-stat font-black text-xs text-[#CCFF00]">
-                                      {ex.lastWeight || 0} кг × {ex.lastReps || 0}
-                                    </span>
-                                  </button>
-                                )}
-
-                                <button
-                                  onClick={() => handleDeleteExercise(program.id, day.id, ex.id)}
-                                  className="text-[#6F778B] hover:text-rose-400 p-1.5"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })
+                        )}
                       </div>
 
-                      {/* Add Exercise Form */}
-                      {addingExerciseToDay === day.id ? (
-                        <div className="bg-[#12151D] border-2 border-dashed border-[#CCFF00]/40 rounded-2xl p-3.5 space-y-2.5">
+                      {/* Add Exercise Modal / Form toggle */}
+                      {addingExerciseToDay?.progId === program.id && addingExerciseToDay?.dayId === day.id ? (
+                        <div className="bg-[#11141D] border border-[#CCFF00]/50 rounded-2xl p-3 space-y-2.5 animate-in fade-in">
                           <input
                             type="text"
                             value={newExName}
                             onChange={(e) => setNewExName(e.target.value)}
-                            placeholder="Назва вправи (напр: Жим лежачи)"
-                            className="w-full bg-[#08090C] border border-[#232734] rounded-xl px-3.5 py-2 text-xs font-bold text-white placeholder-[#6F778B] focus:outline-none focus:border-[#CCFF00]"
+                            placeholder="Назва вправи (напр: Жим гантелей)"
+                            className="w-full bg-[#08090C] border border-[#232734] rounded-xl px-3 py-2 text-sm font-bold text-white outline-none"
                           />
+
                           <div className="grid grid-cols-3 gap-2">
-                            <input
-                              type="text"
+                            <select
                               value={newExMuscle}
                               onChange={(e) => setNewExMuscle(e.target.value)}
-                              placeholder="М'язи (Груди)"
-                              className="bg-[#08090C] border border-[#232734] rounded-xl px-2.5 py-2 text-xs font-bold text-white placeholder-[#6F778B]"
-                            />
+                              className="bg-[#08090C] border border-[#232734] rounded-xl px-2 py-2 text-xs font-bold text-white outline-none"
+                            >
+                              {MUSCLE_GROUPS.map((m) => (
+                                <option key={m.name} value={m.name}>
+                                  {m.name}
+                                </option>
+                              ))}
+                            </select>
+
                             <input
                               type="number"
+                              inputMode="decimal"
+                              step="0.5"
                               value={newExWeight}
                               onChange={(e) => setNewExWeight(e.target.value)}
                               placeholder="Вага (кг)"
-                              className="bg-[#08090C] border border-[#232734] rounded-xl px-2.5 py-2 text-xs font-bold text-white text-center"
+                              className="bg-[#08090C] border border-[#232734] rounded-xl px-2 py-2 text-xs font-stat font-bold text-center text-white outline-none"
                             />
+
                             <input
                               type="number"
+                              inputMode="numeric"
                               value={newExReps}
                               onChange={(e) => setNewExReps(e.target.value)}
-                              placeholder="Повтори"
-                              className="bg-[#08090C] border border-[#232734] rounded-xl px-2.5 py-2 text-xs font-bold text-white text-center"
+                              placeholder="Рази"
+                              className="bg-[#08090C] border border-[#232734] rounded-xl px-2 py-2 text-xs font-stat font-bold text-center text-white outline-none"
                             />
                           </div>
+
                           <div className="flex justify-end gap-2 pt-1">
                             <button
+                              type="button"
                               onClick={() => setAddingExerciseToDay(null)}
-                              className="px-3 py-1.5 text-xs font-bold text-[#8E95A5] uppercase"
+                              className="px-3 py-1 text-xs font-bold text-[#8E95A5] uppercase"
                             >
                               Скасувати
                             </button>
                             <button
+                              type="button"
                               onClick={() => handleAddExercise(program.id, day.id)}
                               className="px-4 py-1.5 bg-[#CCFF00] text-black font-black text-xs uppercase tracking-wider rounded-xl glow-volt-sm"
                             >
@@ -441,12 +495,13 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                         <button
                           onClick={() => {
                             haptic.selection();
-                            setAddingExerciseToDay(day.id);
+                            setAddingExerciseToDay({ progId: program.id, dayId: day.id });
                           }}
-                          className="w-full py-2.5 border-2 border-dashed border-[#232734] hover:border-[#CCFF00]/40 text-[#8E95A5] hover:text-[#CCFF00] rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 active-press transition-all"
+                          style={{ minHeight: '38px' }}
+                          className="w-full py-2 bg-[#11141D] hover:bg-[#181D2A] border border-[#1E2330] rounded-xl text-xs font-black uppercase text-[#8E95A5] hover:text-[#CCFF00] flex items-center justify-center gap-1.5 active-press transition-colors font-stat"
                         >
-                          <Plus size={16} strokeWidth={3} />
-                          <span>Додати вправу в цей день</span>
+                          <Plus size={14} />
+                          <span>+ ДОДАТИ ВПРАВУ</span>
                         </button>
                       )}
                     </div>
@@ -454,10 +509,11 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
 
                   <button
                     onClick={() => handleAddDayToProgram(program.id)}
-                    className="w-full py-3 bg-[#12151D] hover:bg-[#191D28] border border-[#232734] rounded-2xl text-xs font-black uppercase tracking-wider text-[#CCFF00] flex items-center justify-center gap-2 active-press transition-all"
+                    style={{ minHeight: '40px' }}
+                    className="w-full py-2.5 bg-[#08090C] border border-dashed border-[#232734] rounded-2xl text-xs font-black uppercase tracking-wider text-[#A6B0C3] hover:text-white flex items-center justify-center gap-1.5 active-press font-stat"
                   >
-                    <Plus size={16} strokeWidth={3} />
-                    <span>Додати новий день тренувань</span>
+                    <Plus size={15} />
+                    <span>ДОДАТИ ДЕНЬ ДО ЦІЄЇ ПРОГРАМИ</span>
                   </button>
                 </div>
               )}

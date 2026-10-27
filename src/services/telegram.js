@@ -114,10 +114,24 @@ export const cloudStorage = {
   }
 };
 
+// Web Notification helper
+export const triggerBrowserNotification = (title, body) => {
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body,
+        icon: '/favicon.ico'
+      });
+    }
+  } catch (e) {
+    console.warn('Browser notification error:', e);
+  }
+};
+
 export const getTelegramUser = () => {
   return tg?.initDataUnsafe?.user || {
     id: 'local_user',
-    first_name: 'Спортсмен',
-    username: 'athlete'
+    first_name: 'Артем',
+    username: 'ackerman'
   };
 };

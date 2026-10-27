@@ -1,60 +1,57 @@
 import React from 'react';
-import { Home, CalendarCheck2, Dumbbell, Zap, Trophy } from 'lucide-react';
+import { Home, CalendarCheck2, Dumbbell, Zap, Users } from 'lucide-react';
 import { haptic } from '../services/telegram';
 
-export const Navbar = ({ currentTab, setTab, hasActiveWorkout }) => {
-  const tabs = [
-    { id: 'home', label: 'ГОЛОВНА', icon: Home },
-    { id: 'planner', label: 'ПЛАНИ', icon: CalendarCheck2 },
-    { id: 'workouts', label: 'ЗАЛ', icon: Dumbbell },
-    { 
-      id: 'active', 
-      label: 'СЕСІЯ', 
-      icon: Zap, 
-      highlight: hasActiveWorkout 
-    },
-    { id: 'profile', label: 'РЕКОРДИ', icon: Trophy }
-  ];
+const NAV_ITEMS = [
+  { id: 'home', label: 'ГОЛОВНА', icon: Home },
+  { id: 'planner', label: 'ПЛАНИ', icon: CalendarCheck2 },
+  { id: 'workouts', label: 'ЗАЛ', icon: Dumbbell },
+  { id: 'training', label: 'ТРЕНУВАННЯ', icon: Zap },
+  { id: 'squad', label: 'КОМАНДА', icon: Users }
+];
 
-  const handleSelect = (tabId) => {
-    haptic.selection();
-    setTab(tabId);
-  };
-
+export const Navbar = ({ currentTab, setTab }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#08090C]/95 backdrop-blur-xl border-t border-[#1F2432] pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5">
-      <div className="max-w-md mx-auto px-1 flex justify-around items-center">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = currentTab === tab.id;
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#08090C]/95 backdrop-blur-2xl border-t border-[#1C212E] pb-[max(10px,env(safe-area-inset-bottom))] pt-1.5 px-2">
+      <div className="max-w-md mx-auto grid grid-cols-5 gap-1">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentTab === item.id;
 
           return (
             <button
-              key={tab.id}
-              onClick={() => handleSelect(tab.id)}
-              className={`relative flex flex-col items-center justify-center py-1 px-2.5 active-press transition-all duration-150 ${
+              key={item.id}
+              onClick={() => {
+                haptic.selection();
+                setTab(item.id);
+              }}
+              style={{ minHeight: '52px' }}
+              className={`flex flex-col items-center justify-center rounded-2xl transition-all duration-150 active-press select-none ${
                 isActive
-                  ? 'text-[#CCFF00] font-black scale-105'
-                  : 'text-[#6F778B] hover:text-[#A6B0C3]'
+                  ? 'text-[#CCFF00]'
+                  : 'text-[#8E95A5] hover:text-white'
               }`}
             >
-              {tab.highlight && (
-                <span className="absolute top-1 right-2 flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#CCFF00] opacity-80"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#CCFF00]"></span>
-                </span>
-              )}
-              <div
-                className={`p-1.5 rounded-xl transition-all ${
-                  isActive
-                    ? 'bg-[#CCFF00]/15 shadow-[0_0_15px_rgba(204,255,0,0.3)]'
-                    : 'bg-transparent'
+              <div className="relative">
+                <Icon
+                  size={21}
+                  strokeWidth={isActive ? 2.8 : 2}
+                  className={`transition-transform duration-150 ${
+                    isActive
+                      ? 'scale-110 drop-shadow-[0_0_8px_rgba(204,255,0,0.65)]'
+                      : ''
+                  }`}
+                />
+                {isActive && (
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#CCFF00] drop-shadow-[0_0_4px_rgba(204,255,0,0.8)]" />
+                )}
+              </div>
+              <span
+                className={`text-[9px] font-black uppercase tracking-tight mt-1 font-stat ${
+                  isActive ? 'text-[#CCFF00]' : 'text-[#8E95A5]'
                 }`}
               >
-                <Icon size={20} strokeWidth={isActive ? 2.8 : 2} />
-              </div>
-              <span className="text-[9px] mt-1 font-black tracking-wider uppercase">
-                {tab.label}
+                {item.label}
               </span>
             </button>
           );
