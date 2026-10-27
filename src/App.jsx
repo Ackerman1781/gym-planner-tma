@@ -122,6 +122,20 @@ export default function App() {
     saveActiveWorkout(activeWorkout);
   }, [activeWorkout, isReady]);
 
+  // Live Real-Time Cloud Squad Polling (every 15s)
+  useEffect(() => {
+    if (!isReady) return;
+    const interval = setInterval(async () => {
+      try {
+        const cloudSquad = await fetchCloudSquad();
+        if (cloudSquad && cloudSquad.length > 0) {
+          setSquad(cloudSquad);
+        }
+      } catch (e) {}
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [isReady]);
+
   // Periodic Reminder Checker (checks every 30s)
   useEffect(() => {
     const interval = setInterval(() => {

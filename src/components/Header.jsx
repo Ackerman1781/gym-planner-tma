@@ -3,7 +3,7 @@ import { Sliders } from 'lucide-react';
 import { AckermanLogo, StreakFlameIcon } from './CustomIcons';
 import { haptic } from '../services/telegram';
 
-export const Header = ({ streak = 14, onOpenSettings }) => {
+export const Header = ({ streak = 0, onOpenSettings }) => {
   return (
     <header className="sticky top-0 z-30 bg-[#08090C]/90 backdrop-blur-xl border-b border-[#1A1F2C] px-4 py-3">
       <div className="max-w-md mx-auto flex items-center justify-between">

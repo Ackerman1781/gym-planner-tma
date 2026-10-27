@@ -129,11 +129,11 @@ export const HomeTab = ({
             </div>
 
             <div>
-              <div className="text-2xl font-black font-stat text-[#CCFF00] drop-shadow-[0_0_6px_rgba(204,255,0,0.3)]">
-                {records?.[0]?.weight || 95} <span className="text-sm font-normal text-white">КГ</span>
+              <div className="text-2xl font-black font-stat text-[#CCFF00]">
+                {records?.[0]?.weight ? `${records[0].weight} КГ` : '0 КГ'}
               </div>
               <span className="text-xs font-bold text-[#8E95A5] uppercase block mt-0.5 truncate">
-                {records?.[0]?.exercise || 'Жим штанги'}
+                {records?.[0]?.exercise || 'Запиши перший рекорд'}
               </span>
             </div>
 

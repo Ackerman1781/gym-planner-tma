@@ -671,7 +671,7 @@ export const TrainingTab = ({
                   Минулий раз:
                 </span>
                 <span className="font-stat font-black text-xs text-[#CCFF00]">
-                  {ex.lastWeight || 0} кг × {ex.lastReps || 0}
+                  {ex.lastWeight ? `${ex.lastWeight} кг × ${ex.lastReps}` : 'Ще не виконував'}
                 </span>
               </div>
             </div>

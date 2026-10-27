@@ -11,7 +11,7 @@ const STORAGE_KEYS = {
   ACTIVE_WORKOUT: 'ackerman_active_v3'
 };
 
-// 1. Initial starter split with 3 exercises
+// 1. Initial starter split with 3 exercises (Clean: 0 stats for brand new users)
 export const DEFAULT_PROGRAMS = [
   {
     id: 'prog-demo',
@@ -22,34 +22,34 @@ export const DEFAULT_PROGRAMS = [
         id: 'day-1',
         name: 'День 1: Груди та Руки',
         exercises: [
-          { id: 'ex-1', name: 'Жим штанги лежачи', muscle: 'Груди', lastWeight: 85, lastReps: 8 },
-          { id: 'ex-2', name: 'Жим гантелей на похилій', muscle: 'Верх грудей', lastWeight: 28, lastReps: 10 },
-          { id: 'ex-3', name: 'Підйом штанги на біцепс', muscle: 'Руки', lastWeight: 37.5, lastReps: 10 }
+          { id: 'ex-1', name: 'Жим штанги лежачи', muscle: 'Груди', lastWeight: 0, lastReps: 0 },
+          { id: 'ex-2', name: 'Жим гантелей на похилій', muscle: 'Верх грудей', lastWeight: 0, lastReps: 0 },
+          { id: 'ex-3', name: 'Підйом штанги на біцепс', muscle: 'Руки', lastWeight: 0, lastReps: 0 }
         ]
       },
       {
         id: 'day-2',
         name: 'День 2: Спина та Плечі',
         exercises: [
-          { id: 'ex-4', name: 'Тяга штанги в нахилі', muscle: 'Спина', lastWeight: 80, lastReps: 8 },
-          { id: 'ex-5', name: 'Армійський жим стоячи', muscle: 'Плечі', lastWeight: 52.5, lastReps: 8 },
-          { id: 'ex-6', name: 'Тяга блоку до грудей', muscle: 'Широчайші', lastWeight: 70, lastReps: 10 }
+          { id: 'ex-4', name: 'Тяга штанги в нахилі', muscle: 'Спина', lastWeight: 0, lastReps: 0 },
+          { id: 'ex-5', name: 'Армійський жим стоячи', muscle: 'Плечі', lastWeight: 0, lastReps: 0 },
+          { id: 'ex-6', name: 'Тяга блоку до грудей', muscle: 'Широчайші', lastWeight: 0, lastReps: 0 }
         ]
       },
       {
         id: 'day-3',
         name: 'День 3: Ноги та Кор',
         exercises: [
-          { id: 'ex-7', name: 'Присідання зі штангою', muscle: 'Ноги', lastWeight: 105, lastReps: 8 },
-          { id: 'ex-8', name: 'Румунська тяга', muscle: 'Біцепс стегна', lastWeight: 90, lastReps: 10 },
-          { id: 'ex-9', name: 'Скручування з вагою', muscle: 'Прес', lastWeight: 20, lastReps: 15 }
+          { id: 'ex-7', name: 'Присідання зі штангою', muscle: 'Ноги', lastWeight: 0, lastReps: 0 },
+          { id: 'ex-8', name: 'Румунська тяга', muscle: 'Біцепс стегна', lastWeight: 0, lastReps: 0 },
+          { id: 'ex-9', name: 'Скручування з вагою', muscle: 'Прес', lastWeight: 0, lastReps: 0 }
         ]
       }
     ]
   }
 ];
 
-// 2. Initial starter tasks (2 planned tasks with reminders, NO emojis!)
+// 2. Initial starter tasks (Clean tasks)
 export const DEFAULT_TASKS = [
   {
     id: 't-1',
@@ -65,7 +65,7 @@ export const DEFAULT_TASKS = [
     id: 't-2',
     text: 'Випити норму води (2.5л) та вітаміни',
     date: new Date().toISOString().split('T')[0],
-    completed: true,
+    completed: false,
     priority: 'normal',
     category: 'work',
     reminderTime: '12:00',
@@ -73,66 +73,32 @@ export const DEFAULT_TASKS = [
   }
 ];
 
-// 3. Initial Squad Leaderboard (Clean: Only User, no fake demo bots)
+// 3. Initial Squad Leaderboard (Clean: Only User with 0 stats at start)
 export const DEFAULT_SQUAD = [
   {
     id: 'user_me',
-    name: 'Артем (Ackerman)',
+    name: 'Атлет',
     isMe: true,
-    streak: 14,
-    bench: 95,
-    squat: 120,
-    bicep: 40,
-    workouts: 32,
+    streak: 0,
+    bench: 0,
+    squat: 0,
+    bicep: 0,
+    workouts: 0,
     avatarId: 'titan'
   }
 ];
 
 export const DEFAULT_PROFILE = {
-  nickname: 'Артем',
+  nickname: '',
   avatarId: 'titan',
   soundEnabled: true
 };
 
-// 4. Initial Personal Records (Календар Рекордів - Жим та база на 1 раз)
-export const DEFAULT_RECORDS = [
-  {
-    id: 'rec-1',
-    exercise: 'Жим штанги лежачи',
-    weight: 95,
-    reps: 1,
-    date: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString().split('T')[0]
-  },
-  {
-    id: 'rec-2',
-    exercise: 'Присідання зі штангою',
-    weight: 120,
-    reps: 1,
-    date: new Date(Date.now() - 12 * 24 * 3600 * 1000).toISOString().split('T')[0]
-  },
-  {
-    id: 'rec-3',
-    exercise: 'Станова тяга',
-    weight: 145,
-    reps: 1,
-    date: new Date(Date.now() - 20 * 24 * 3600 * 1000).toISOString().split('T')[0]
-  }
-];
+// 4. Initial Personal Records (Empty by default: user adds their own)
+export const DEFAULT_RECORDS = [];
 
-export const DEFAULT_HISTORY = [
-  {
-    id: 'hist-1',
-    programName: 'Спліт: Сила & Маса',
-    dayName: 'День 1: Груди та Руки',
-    date: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
-    durationSeconds: 2700,
-    exercises: [
-      { name: 'Жим штанги лежачи', weight: 85, reps: 8 },
-      { name: 'Жим гантелей на похилій', weight: 28, reps: 10 },
-      { name: 'Підйом штанги на біцепс', weight: 37.5, reps: 10 }
-    ]
-  }
-];
+// 5. Initial History (Empty by default: records when workouts are finished)
+export const DEFAULT_HISTORY = [];
 
 // Helper to compute Rank according to requirements
 export const getPlayerRank = (streak, isLeader = false) => {
@@ -203,15 +169,39 @@ export const loadData = async () => {
     }
 
     let initialSquad = rawSquad ? JSON.parse(rawSquad) : DEFAULT_SQUAD;
-    // Strip out legacy mock demo friends (Макс, Данило, Олег)
+    // Strip out legacy mock demo friends (Макс, Данило, Олег) and reset old mock numbers
     initialSquad = initialSquad
       .filter((m) => m.id !== 'friend_1' && m.id !== 'friend_2' && m.id !== 'friend_3')
-      .map((m) =>
-        m.isMe ? { ...m, name: initialProfile.nickname || m.name, avatarId: initialProfile.avatarId } : m
-      );
+      .map((m) => {
+        if (m.isMe && (m.streak === 14 || m.workouts === 32)) {
+          return {
+            ...m,
+            name: initialProfile.nickname || m.name,
+            avatarId: initialProfile.avatarId,
+            streak: 0,
+            workouts: 0,
+            bench: 0,
+            squat: 0,
+            bicep: 0
+          };
+        }
+        return m.isMe ? { ...m, name: initialProfile.nickname || m.name, avatarId: initialProfile.avatarId } : m;
+      });
 
     if (initialSquad.length === 0) {
       initialSquad = DEFAULT_SQUAD;
+    }
+
+    // Clear legacy mock records
+    let parsedRecords = rawRecords ? JSON.parse(rawRecords) : DEFAULT_RECORDS;
+    if (parsedRecords && parsedRecords.length && parsedRecords[0]?.id === 'rec-1') {
+      parsedRecords = [];
+    }
+
+    // Clear legacy mock history
+    let parsedHistory = rawHistory ? JSON.parse(rawHistory) : DEFAULT_HISTORY;
+    if (parsedHistory && parsedHistory.length && parsedHistory[0]?.id === 'hist-1') {
+      parsedHistory = [];
     }
 
     return {
@@ -219,8 +209,8 @@ export const loadData = async () => {
       programs: rawPrograms ? JSON.parse(rawPrograms) : DEFAULT_PROGRAMS,
       squad: initialSquad,
       profile: initialProfile,
-      records: rawRecords ? JSON.parse(rawRecords) : DEFAULT_RECORDS,
-      history: rawHistory ? JSON.parse(rawHistory) : DEFAULT_HISTORY,
+      records: parsedRecords,
+      history: parsedHistory,
       activeWorkout: rawActive ? JSON.parse(rawActive) : null
     };
   } catch (e) {
