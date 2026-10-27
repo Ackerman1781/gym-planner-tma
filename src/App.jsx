@@ -3,21 +3,22 @@ import {
   initTelegramApp, haptic 
 } from './services/telegram';
 import { 
-  loadData, saveTasks, savePrograms, saveHistory, saveActiveWorkout,
-  DEFAULT_PROGRAMS, DEFAULT_TASKS, DEFAULT_HISTORY 
+  loadData, saveTasks, savePrograms, saveHistory, saveActiveWorkout, saveRecords,
+  DEFAULT_PROGRAMS, DEFAULT_TASKS, DEFAULT_HISTORY, DEFAULT_RECORDS 
 } from './services/storage';
 
 import { HeaderLogo } from './components/HeaderLogo';
 import { Navbar } from './components/Navbar';
+import { HomeTab } from './components/HomeTab';
 import { PlannerTab } from './components/PlannerTab';
 import { WorkoutsTab } from './components/WorkoutsTab';
 import { ActiveWorkoutModal } from './components/ActiveWorkoutModal';
-import { ProgressTab } from './components/ProgressTab';
-import { SettingsTab } from './components/SettingsTab';
+import { ProfileTab } from './components/ProfileTab';
 import { RestTimer } from './components/RestTimer';
 
 export default function App() {
-  const [currentTab, setTab] = useState('planner');
+  // Start on the Welcome / Home Dashboard
+  const [currentTab, setTab] = useState('home');
   const [isReady, setIsReady] = useState(false);
 
   // Core App Data
@@ -25,6 +26,7 @@ export default function App() {
   const [programs, setPrograms] = useState(DEFAULT_PROGRAMS);
   const [history, setHistory] = useState(DEFAULT_HISTORY);
   const [activeWorkout, setActiveWorkout] = useState(null);
+  const [records, setRecords] = useState(DEFAULT_RECORDS);
 
   // Floating Rest Timer State
   const [restTimerSeconds, setRestTimerSeconds] = useState(null);
@@ -38,6 +40,7 @@ export default function App() {
       if (data.programs) setPrograms(data.programs);
       if (data.history) setHistory(data.history);
       if (data.activeWorkout) setActiveWorkout(data.activeWorkout);
+      if (data.records) setRecords(data.records);
       setIsReady(true);
     });
   }, []);
@@ -63,6 +66,11 @@ export default function App() {
     saveActiveWorkout(activeWorkout);
   }, [activeWorkout, isReady]);
 
+  useEffect(() => {
+    if (!isReady) return;
+    saveRecords(records);
+  }, [records, isReady]);
+
   // Start Workout Handler
   const handleStartWorkout = (program, day) => {
     haptic.impact('heavy');
@@ -77,14 +85,13 @@ export default function App() {
         id: ex.id,
         name: ex.name,
         muscle: ex.muscle,
-        targetSets: ex.targetSets,
-        targetReps: ex.targetReps,
-        sets: Array.from({ length: ex.targetSets || 3 }).map((_, idx) => ({
-          setNum: idx + 1,
-          weight: 20,
-          reps: 10,
-          completed: false
-        }))
+        lastWeight: ex.lastWeight || 20,
+        lastReps: ex.lastReps || 10,
+        sets: [
+          { setNum: 1, weight: ex.lastWeight || 20, reps: ex.lastReps || 10, completed: false },
+          { setNum: 2, weight: ex.lastWeight || 20, reps: ex.lastReps || 10, completed: false },
+          { setNum: 3, weight: ex.lastWeight || 20, reps: ex.lastReps || 10, completed: false }
+        ]
       }))
     };
 
@@ -99,7 +106,7 @@ export default function App() {
     setHistory(updatedHistory);
     setActiveWorkout(null);
     setRestTimerSeconds(null);
-    setTab('progress');
+    setTab('profile');
   };
 
   const handleTriggerRestTimer = (secs = 90) => {
@@ -108,11 +115,21 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#08090C] text-[#F3F4F6] antialiased">
-      {/* Dynamic Athletic Header with SVG Logo */}
+      {/* Top Athletic Branding Header */}
       <HeaderLogo />
 
       {/* Main Tab Content */}
       <main className="flex-1 flex flex-col">
+        {currentTab === 'home' && (
+          <HomeTab
+            tasks={tasks}
+            programs={programs}
+            records={records}
+            setTab={setTab}
+            onStartWorkout={handleStartWorkout}
+          />
+        )}
+
         {currentTab === 'planner' && (
           <PlannerTab tasks={tasks} setTasks={setTasks} />
         )}
@@ -135,17 +152,15 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'progress' && (
-          <ProgressTab history={history} programs={programs} />
-        )}
-
-        {currentTab === 'settings' && (
-          <SettingsTab
+        {currentTab === 'profile' && (
+          <ProfileTab
+            history={history}
+            records={records}
+            setRecords={setRecords}
             tasks={tasks}
             setTasks={setTasks}
             programs={programs}
             setPrograms={setPrograms}
-            history={history}
             setHistory={setHistory}
           />
         )}
@@ -160,7 +175,7 @@ export default function App() {
         />
       )}
 
-      {/* Telegram-style Athletic Bottom Navigation Bar */}
+      {/* Telegram-style 5-Tab Navigation Bar */}
       <Navbar
         currentTab={currentTab}
         setTab={setTab}

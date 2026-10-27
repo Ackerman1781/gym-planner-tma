@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Check, Plus, Trash2, ArrowRightCircle, 
-  Flame, Calendar, Sparkles, AlertCircle 
+  Flame, Calendar, Sparkles, Bell, BellOff, Clock 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { haptic } from '../services/telegram';
@@ -19,6 +19,8 @@ export const PlannerTab = ({ tasks, setTasks }) => {
   const [taskText, setTaskText] = useState('');
   const [category, setCategory] = useState('gym');
   const [priority, setPriority] = useState('normal');
+  const [reminderTime, setReminderTime] = useState('18:00');
+  const [hasReminder, setHasReminder] = useState(true);
 
   const dayTasks = tasks.filter((t) => t.date === selectedDate);
   const completedCount = dayTasks.filter((t) => t.completed).length;
@@ -44,11 +46,21 @@ export const PlannerTab = ({ tasks, setTasks }) => {
     return Math.max(streak, 1);
   };
 
+  const handleRequestNotification = () => {
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+  };
+
   const handleAddTask = (e) => {
     e.preventDefault();
     if (!taskText.trim()) return;
 
     haptic.impact('heavy');
+    if (hasReminder) {
+      handleRequestNotification();
+    }
+
     const newTask = {
       id: 'task_' + Date.now(),
       text: taskText.trim(),
@@ -56,6 +68,8 @@ export const PlannerTab = ({ tasks, setTasks }) => {
       completed: false,
       priority,
       category,
+      reminderTime: hasReminder ? reminderTime : null,
+      hasReminder,
       createdAt: new Date().toISOString()
     };
 
@@ -80,6 +94,18 @@ export const PlannerTab = ({ tasks, setTasks }) => {
           }
         }
         return { ...t, completed: nextState };
+      }
+      return t;
+    });
+    setTasks(updated);
+  };
+
+  const toggleReminder = (taskId, e) => {
+    e.stopPropagation();
+    haptic.selection();
+    const updated = tasks.map((t) => {
+      if (t.id === taskId) {
+        return { ...t, hasReminder: !t.hasReminder };
       }
       return t;
     });
@@ -128,10 +154,10 @@ export const PlannerTab = ({ tasks, setTasks }) => {
       <div className="flex items-center justify-between mb-5 bg-[#12151D] border border-[#232734] rounded-3xl p-4 shadow-lg">
         <div>
           <span className="text-[11px] font-black uppercase tracking-widest text-[#8E95A5] block">
-            ЩОДЕННИК ДНЯ
+            РОЗКЛАД ТА СПРАВИ
           </span>
           <h2 className="text-2xl font-black text-white uppercase italic tracking-tight font-['Space_Grotesk',sans-serif]">
-            ПЛАНИ ТА ДИСЦИПЛІНА
+            ПЛАНУВАННЯ ДНЯ
           </h2>
         </div>
         <div className="flex flex-col items-end">
@@ -139,11 +165,11 @@ export const PlannerTab = ({ tasks, setTasks }) => {
             <Flame size={18} className="text-[#CCFF00] fill-[#CCFF00] animate-bounce" />
             <span className="font-stat">{calculateStreak()} ДНІВ</span>
           </div>
-          <span className="text-[10px] text-[#8E95A5] font-bold uppercase mt-1">Серія перемог</span>
+          <span className="text-[10px] text-[#8E95A5] font-bold uppercase mt-1">Серія фокусу</span>
         </div>
       </div>
 
-      {/* Massive Date Switcher Tabs */}
+      {/* Date Switcher Bar */}
       <div className="grid grid-cols-4 gap-2 p-1.5 bg-[#12151D] border border-[#232734] rounded-2xl mb-4">
         <button
           onClick={() => { haptic.selection(); setSelectedDate(yesterdayStr); }}
@@ -198,7 +224,7 @@ export const PlannerTab = ({ tasks, setTasks }) => {
         </label>
       </div>
 
-      {/* Athletic Progress Card */}
+      {/* Progress Card */}
       <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 mb-5 shadow-md">
         <div className="flex justify-between items-center mb-2">
           <span className="text-xs font-extrabold text-[#8E95A5] uppercase tracking-wider">
@@ -216,14 +242,14 @@ export const PlannerTab = ({ tasks, setTasks }) => {
         </div>
       </div>
 
-      {/* Large Athletic Task Input Form */}
-      <form onSubmit={handleAddTask} className="bg-[#12151D] border border-[#232734] rounded-3xl p-3.5 mb-5 shadow-lg">
+      {/* Add Task with Reminders (Things 3 style) */}
+      <form onSubmit={handleAddTask} className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 mb-5 shadow-lg">
         <div className="flex items-center gap-2 mb-3">
           <input
             type="text"
             value={taskText}
             onChange={(e) => setTaskText(e.target.value)}
-            placeholder="Введи нову ціль або завдання..."
+            placeholder="Що потрібно виконати?.."
             className="flex-1 bg-[#08090C] border border-[#232734] rounded-2xl px-4 py-3.5 text-base font-bold text-white placeholder-[#6F778B] focus:outline-none focus:border-[#CCFF00] transition-colors"
           />
           <button
@@ -235,8 +261,57 @@ export const PlannerTab = ({ tasks, setTasks }) => {
           </button>
         </div>
 
-        {/* Categories & Priority with Large Tap Areas */}
-        <div className="flex items-center justify-between pt-2 border-t border-[#1C202C]">
+        {/* Time Reminder & Category Controls */}
+        <div className="space-y-2.5 pt-2 border-t border-[#1C202C]">
+          <div className="flex items-center justify-between">
+            {/* Reminder Toggle */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  haptic.selection();
+                  setHasReminder(!hasReminder);
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all ${
+                  hasReminder
+                    ? 'bg-[#CCFF00]/15 text-[#CCFF00] border border-[#CCFF00]/40'
+                    : 'bg-[#191D28] text-[#8E95A5]'
+                }`}
+              >
+                {hasReminder ? <Bell size={14} className="animate-bounce" /> : <BellOff size={14} />}
+                <span>{hasReminder ? 'Нагадування вкл' : 'Без нагадування'}</span>
+              </button>
+
+              {hasReminder && (
+                <div className="flex items-center gap-1 bg-[#08090C] border border-[#2B3142] rounded-xl px-2.5 py-1 text-xs font-stat font-bold text-white">
+                  <Clock size={13} className="text-[#CCFF00]" />
+                  <input
+                    type="time"
+                    value={reminderTime}
+                    onChange={(e) => setReminderTime(e.target.value)}
+                    className="bg-transparent text-white focus:outline-none text-xs"
+                  />
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                haptic.selection();
+                setPriority(priority === 'normal' ? 'high' : 'normal');
+              }}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                priority === 'high'
+                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                  : 'text-[#8E95A5] hover:text-white'
+              }`}
+            >
+              {priority === 'high' ? '🔥 ВАЖЛИВО' : 'ЗВИЧАЙНЕ'}
+            </button>
+          </div>
+
+          {/* Categories */}
           <div className="flex items-center gap-1.5 overflow-x-auto py-1">
             {CATEGORIES.map((cat) => (
               <button
@@ -254,25 +329,10 @@ export const PlannerTab = ({ tasks, setTasks }) => {
               </button>
             ))}
           </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic.selection();
-              setPriority(priority === 'normal' ? 'high' : 'normal');
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-              priority === 'high'
-                ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
-                : 'text-[#8E95A5] hover:text-white'
-            }`}
-          >
-            {priority === 'high' ? '🔥 ВАЖЛИВО' : 'ЗВИЧАЙНЕ'}
-          </button>
         </div>
       </form>
 
-      {/* Big Bold Task List */}
+      {/* Task List */}
       <div className="space-y-3 mb-5">
         {dayTasks.length === 0 ? (
           <div className="text-center py-12 px-4 bg-[#12151D]/60 border border-dashed border-[#232734] rounded-3xl">
@@ -281,7 +341,7 @@ export const PlannerTab = ({ tasks, setTasks }) => {
               Планів на цей день немає
             </h3>
             <p className="text-xs text-[#8E95A5] font-semibold mt-1">
-              Запиши цілі на день або відпочивай перед тренуванням!
+              Додай задачу з нагадуванням або відпочивай!
             </p>
           </div>
         ) : (
@@ -301,7 +361,6 @@ export const PlannerTab = ({ tasks, setTasks }) => {
                   onClick={() => toggleTask(task.id)}
                   className="flex items-center gap-3.5 flex-1 cursor-pointer select-none"
                 >
-                  {/* Huge Tactile Checkbox Button */}
                   <button
                     type="button"
                     className={`w-9 h-9 rounded-2xl border-2 flex items-center justify-center transition-all shrink-0 ${
@@ -325,6 +384,16 @@ export const PlannerTab = ({ tasks, setTasks }) => {
                       <span className="text-[11px] font-bold text-[#8E95A5] flex items-center gap-1 uppercase tracking-wider">
                         <span>{catObj.icon}</span> {catObj.label}
                       </span>
+                      {task.hasReminder && task.reminderTime && (
+                        <button
+                          type="button"
+                          onClick={(e) => toggleReminder(task.id, e)}
+                          className="text-[10px] text-[#CCFF00] font-black bg-[#CCFF00]/10 border border-[#CCFF00]/30 px-2 py-0.5 rounded-md flex items-center gap-1"
+                        >
+                          <Bell size={11} />
+                          <span>{task.reminderTime}</span>
+                        </button>
+                      )}
                       {task.priority === 'high' && (
                         <span className="text-[10px] text-rose-400 font-black bg-rose-500/15 px-2 py-0.5 rounded-md uppercase">
                           ВАЖЛИВО

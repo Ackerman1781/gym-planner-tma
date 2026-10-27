@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Play, Plus, Dumbbell, ChevronDown, ChevronUp, 
-  Trash2, Zap, Layers 
+  Trash2, Edit2, Check, Flame 
 } from 'lucide-react';
 import { haptic } from '../services/telegram';
 
@@ -10,11 +10,15 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
   const [isCreatingProgram, setIsCreatingProgram] = useState(false);
   const [newProgramName, setNewProgramName] = useState('');
   
+  // Adding exercise modal/form
   const [addingExerciseToDay, setAddingExerciseToDay] = useState(null);
   const [newExName, setNewExName] = useState('');
   const [newExMuscle, setNewExMuscle] = useState('');
-  const [newExSets, setNewExSets] = useState(3);
-  const [newExReps, setNewExReps] = useState('8-12');
+  const [newExWeight, setNewExWeight] = useState(60);
+  const [newExReps, setNewExReps] = useState(10);
+
+  // Quick edit record modal/state for an exercise
+  const [editingEx, setEditingEx] = useState(null); // { programId, dayId, exId, weight, reps }
 
   const toggleExpand = (id) => {
     haptic.selection();
@@ -86,8 +90,8 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                     id: 'ex_' + Date.now(),
                     name: newExName.trim(),
                     muscle: newExMuscle.trim() || 'Загальне',
-                    targetSets: parseInt(newExSets, 10) || 3,
-                    targetReps: newExReps.trim() || '10'
+                    lastWeight: parseFloat(newExWeight) || 0,
+                    lastReps: parseInt(newExReps, 10) || 10
                   }
                 ]
               };
@@ -103,6 +107,39 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
     setAddingExerciseToDay(null);
     setNewExName('');
     setNewExMuscle('');
+    haptic.success();
+  };
+
+  const handleSaveQuickRecord = (programId, dayId, exId, weight, reps) => {
+    haptic.impact('medium');
+    const updated = programs.map((p) => {
+      if (p.id === programId) {
+        return {
+          ...p,
+          days: p.days.map((d) => {
+            if (d.id === dayId) {
+              return {
+                ...d,
+                exercises: d.exercises.map((e) => {
+                  if (e.id === exId) {
+                    return {
+                      ...e,
+                      lastWeight: parseFloat(weight) || 0,
+                      lastReps: parseInt(reps, 10) || 0
+                    };
+                  }
+                  return e;
+                })
+              };
+            }
+            return d;
+          })
+        };
+      }
+      return p;
+    });
+    setPrograms(updated);
+    setEditingEx(null);
     haptic.success();
   };
 
@@ -141,10 +178,10 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
       <div className="flex items-center justify-between mb-5 bg-[#12151D] border border-[#232734] rounded-3xl p-4 shadow-lg">
         <div>
           <span className="text-[11px] font-black uppercase tracking-widest text-[#8E95A5] block">
-            СИЛОВІ ПРОГРАМИ
+            СИЛОВИЙ БЛОК
           </span>
           <h2 className="text-2xl font-black text-white uppercase italic tracking-tight font-['Space_Grotesk',sans-serif]">
-            БАЗА ТРЕНУВАНЬ
+            ПРОГРАМИ ТРЕНУВАНЬ
           </h2>
         </div>
         <button
@@ -163,13 +200,13 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
       {isCreatingProgram && (
         <form onSubmit={handleCreateProgram} className="bg-[#12151D] border-2 border-[#CCFF00] rounded-3xl p-4 mb-5 shadow-2xl animate-in fade-in">
           <h3 className="text-sm font-black text-white uppercase tracking-wider mb-2">
-            Нова тренувальна програма
+            Нова програма тренувань
           </h3>
           <input
             type="text"
             value={newProgramName}
             onChange={(e) => setNewProgramName(e.target.value)}
-            placeholder="Назва (напр: Спліт на масу)"
+            placeholder="Назва спліту (напр: Силовий 3-денний)"
             className="w-full bg-[#08090C] border border-[#232734] rounded-2xl px-4 py-3 text-sm font-bold text-white placeholder-[#6F778B] focus:outline-none focus:border-[#CCFF00] mb-3"
           />
           <div className="flex justify-end gap-2">
@@ -191,7 +228,7 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
         </form>
       )}
 
-      {/* Programs List */}
+      {/* Programs List (Gymshark / Hevy Style) */}
       <div className="space-y-4">
         {programs.map((program) => {
           const isExpanded = expandedProgramId === program.id;
@@ -234,7 +271,7 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                 </div>
               </div>
 
-              {/* Days Accordion Body */}
+              {/* Days Body */}
               {isExpanded && (
                 <div className="px-4 pb-4 pt-1 border-t border-[#1C202C] space-y-4">
                   {program.days?.map((day) => (
@@ -249,11 +286,11 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                             {day.name}
                           </h4>
                           <span className="text-xs font-bold text-[#8E95A5] uppercase tracking-wider">
-                            {day.exercises?.length || 0} ВПРАВ У СПИСКУ
+                            {day.exercises?.length || 0} ВПРАВ
                           </span>
                         </div>
 
-                        {/* Bold Start Workout Button */}
+                        {/* Start Workout Button */}
                         <button
                           onClick={() => {
                             haptic.impact('heavy');
@@ -266,35 +303,90 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                         </button>
                       </div>
 
-                      {/* Exercises in this Day */}
-                      <div className="space-y-2 mb-3">
-                        {day.exercises?.map((ex, idx) => (
-                          <div
-                            key={ex.id || idx}
-                            className="flex items-center justify-between py-2.5 px-3 rounded-2xl bg-[#12151D] border border-[#1F2432]"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="text-[#CCFF00] font-stat font-extrabold text-xs w-5">
-                                {idx < 9 ? `0${idx + 1}` : idx + 1}
-                              </span>
-                              <div className="truncate">
-                                <span className="font-bold text-white text-sm block truncate">
-                                  {ex.name}
+                      {/* Exercises List (Gymshark style: Exercise + Muscle + Last Record: 80 kg × 8) */}
+                      <div className="space-y-2.5 mb-3.5">
+                        {day.exercises?.map((ex, idx) => {
+                          const isEditingThis = editingEx && editingEx.exId === ex.id;
+
+                          return (
+                            <div
+                              key={ex.id || idx}
+                              className="p-3 rounded-2xl bg-[#12151D] border border-[#1F2432] flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className="text-[#CCFF00] font-stat font-extrabold text-xs w-5">
+                                  {idx < 9 ? `0${idx + 1}` : idx + 1}
                                 </span>
-                                <span className="text-[11px] font-extrabold text-[#8E95A5] uppercase tracking-wider">
-                                  {ex.muscle} • {ex.targetSets} СЕТИ × {ex.targetReps}
-                                </span>
+                                <div>
+                                  <span className="font-bold text-white text-sm block truncate">
+                                    {ex.name}
+                                  </span>
+                                  <span className="text-[11px] font-extrabold text-[#8E95A5] uppercase tracking-wider">
+                                    {ex.muscle || 'Загальне'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Right side: Last recorded weight and reps (Editable in 1 click!) */}
+                              <div className="flex items-center gap-2">
+                                {isEditingThis ? (
+                                  <div className="flex items-center gap-1 bg-[#08090C] border border-[#CCFF00] rounded-xl p-1">
+                                    <input
+                                      type="number"
+                                      value={editingEx.weight}
+                                      onChange={(e) => setEditingEx({ ...editingEx, weight: e.target.value })}
+                                      className="w-12 bg-[#12151D] text-center font-stat font-bold text-xs text-white rounded p-1"
+                                      placeholder="кг"
+                                    />
+                                    <span className="text-xs text-[#8E95A5]">×</span>
+                                    <input
+                                      type="number"
+                                      value={editingEx.reps}
+                                      onChange={(e) => setEditingEx({ ...editingEx, reps: e.target.value })}
+                                      className="w-10 bg-[#12151D] text-center font-stat font-bold text-xs text-white rounded p-1"
+                                      placeholder="раз"
+                                    />
+                                    <button
+                                      onClick={() => handleSaveQuickRecord(program.id, day.id, ex.id, editingEx.weight, editingEx.reps)}
+                                      className="p-1 bg-[#CCFF00] text-black rounded font-bold"
+                                    >
+                                      <Check size={14} strokeWidth={3} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      haptic.selection();
+                                      setEditingEx({
+                                        programId: program.id,
+                                        dayId: day.id,
+                                        exId: ex.id,
+                                        weight: ex.lastWeight || 0,
+                                        reps: ex.lastReps || 0
+                                      });
+                                    }}
+                                    className="px-2.5 py-1.5 bg-[#08090C] hover:bg-[#182015] border border-[#2B3142] hover:border-[#CCFF00]/40 rounded-xl text-right active-press transition-all"
+                                    title="Натисни, щоб змінити останню вагу"
+                                  >
+                                    <span className="text-[9px] uppercase font-bold text-[#8E95A5] block">
+                                      Останній раз:
+                                    </span>
+                                    <span className="font-stat font-black text-xs text-[#CCFF00]">
+                                      {ex.lastWeight || 0} кг × {ex.lastReps || 0}
+                                    </span>
+                                  </button>
+                                )}
+
+                                <button
+                                  onClick={() => handleDeleteExercise(program.id, day.id, ex.id)}
+                                  className="text-[#6F778B] hover:text-rose-400 p-1.5"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
                               </div>
                             </div>
-
-                            <button
-                              onClick={() => handleDeleteExercise(program.id, day.id, ex.id)}
-                              className="text-[#6F778B] hover:text-rose-400 p-1.5"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
 
                       {/* Add Exercise Form */}
@@ -304,7 +396,7 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                             type="text"
                             value={newExName}
                             onChange={(e) => setNewExName(e.target.value)}
-                            placeholder="Назва вправи (напр: Жим штанги)"
+                            placeholder="Назва вправи (напр: Жим лежачи)"
                             className="w-full bg-[#08090C] border border-[#232734] rounded-xl px-3.5 py-2 text-xs font-bold text-white placeholder-[#6F778B] focus:outline-none focus:border-[#CCFF00]"
                           />
                           <div className="grid grid-cols-3 gap-2">
@@ -317,13 +409,13 @@ export const WorkoutsTab = ({ programs, setPrograms, onStartWorkout }) => {
                             />
                             <input
                               type="number"
-                              value={newExSets}
-                              onChange={(e) => setNewExSets(e.target.value)}
-                              placeholder="Сети"
+                              value={newExWeight}
+                              onChange={(e) => setNewExWeight(e.target.value)}
+                              placeholder="Вага (кг)"
                               className="bg-[#08090C] border border-[#232734] rounded-xl px-2.5 py-2 text-xs font-bold text-white text-center"
                             />
                             <input
-                              type="text"
+                              type="number"
                               value={newExReps}
                               onChange={(e) => setNewExReps(e.target.value)}
                               placeholder="Повтори"
