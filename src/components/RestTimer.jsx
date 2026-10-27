@@ -32,7 +32,7 @@ export const RestTimer = ({ initialSeconds = 90, onFinish, onClose }) => {
   };
 
   const addTime = (secs) => {
-    haptic.impact('light');
+    haptic.impact('heavy');
     setSecondsLeft((prev) => prev + secs);
   };
 
@@ -47,24 +47,22 @@ export const RestTimer = ({ initialSeconds = 90, onFinish, onClose }) => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const progress = Math.max(0, Math.min(100, (secondsLeft / initialSeconds) * 100));
-
   return (
-    <div className="fixed bottom-20 left-3 right-3 max-w-md mx-auto z-50 animate-in fade-in slide-in-from-bottom duration-200">
-      <div className="bg-[#1c2128]/95 border border-emerald-500/40 backdrop-blur-xl rounded-2xl p-3.5 shadow-2xl shadow-emerald-950/40 text-white flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative w-11 h-11 flex items-center justify-center bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/30">
-            <Timer size={22} className={isRunning && secondsLeft > 0 ? 'animate-pulse' : ''} />
+    <div className="fixed bottom-24 left-3 right-3 max-w-md mx-auto z-50 animate-in fade-in slide-in-from-bottom duration-200">
+      <div className="bg-[#12151D]/98 border-2 border-[#CCFF00] backdrop-blur-2xl rounded-3xl p-4 shadow-2xl shadow-[#CCFF00]/10 text-white flex items-center justify-between glow-volt-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="relative w-12 h-12 flex items-center justify-center bg-[#CCFF00]/15 rounded-2xl text-[#CCFF00] border border-[#CCFF00]/40">
+            <Timer size={26} strokeWidth={2.5} className={isRunning && secondsLeft > 0 ? 'animate-pulse' : ''} />
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-[#8b949e] font-semibold flex items-center gap-1.5">
-              <span>Відпочинок</span>
-              {secondsLeft === 0 && <span className="text-emerald-400 font-bold">Час до бою! 💥</span>}
+            <div className="text-[10px] uppercase tracking-widest text-[#8E95A5] font-black flex items-center gap-1.5">
+              <span>ВІДПОЧИНОК</span>
+              {secondsLeft === 0 && <span className="text-[#CCFF00] font-black animate-pulse">ЧАС ПРАЦЮВАТИ! 💥</span>}
             </div>
-            <div className="text-xl font-bold font-mono tracking-tight text-white flex items-center gap-2">
+            <div className="text-2xl font-black font-stat tracking-tight text-white flex items-center gap-2">
               {formatTime(secondsLeft)}
               {secondsLeft === 0 && (
-                <CheckCircle2 size={18} className="text-emerald-400 animate-bounce" />
+                <CheckCircle2 size={22} className="text-[#CCFF00] animate-bounce" />
               )}
             </div>
           </div>
@@ -73,16 +71,16 @@ export const RestTimer = ({ initialSeconds = 90, onFinish, onClose }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => addTime(30)}
-            className="px-2.5 py-1.5 bg-[#21262d] active:bg-[#30363d] border border-[#30363d] rounded-xl text-xs font-semibold text-emerald-300 flex items-center gap-1 active:scale-95 transition-all"
+            className="px-3.5 py-2 bg-[#1A1E29] active-press border border-[#2B3142] rounded-2xl text-xs font-black uppercase text-[#CCFF00] flex items-center gap-1 glow-volt-sm"
           >
-            <Plus size={13} /> 30с
+            <Plus size={14} strokeWidth={3} /> 30С
           </button>
           
           <button
             onClick={toggleRun}
-            className="p-2 bg-[#21262d] active:bg-[#30363d] border border-[#30363d] rounded-xl text-[#c9d1d9] active:scale-95 transition-all"
+            className="p-2.5 bg-[#1A1E29] active-press border border-[#2B3142] rounded-2xl text-white"
           >
-            {isRunning ? <Pause size={16} /> : <Play size={16} className="text-emerald-400" />}
+            {isRunning ? <Pause size={18} strokeWidth={2.5} /> : <Play size={18} strokeWidth={2.5} className="text-[#CCFF00]" />}
           </button>
 
           <button
@@ -90,9 +88,9 @@ export const RestTimer = ({ initialSeconds = 90, onFinish, onClose }) => {
               haptic.impact('light');
               onClose();
             }}
-            className="p-2 bg-[#21262d]/50 active:bg-rose-900/30 border border-[#30363d] rounded-xl text-[#8b949e] hover:text-rose-400 active:scale-95 transition-all"
+            className="p-2.5 bg-[#1A1E29]/60 active-press border border-[#2B3142] rounded-2xl text-[#8E95A5] hover:text-rose-400"
           >
-            <X size={16} />
+            <X size={18} strokeWidth={2.5} />
           </button>
         </div>
       </div>

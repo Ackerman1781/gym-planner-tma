@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
 import { 
-  Calculator, Trophy, Dumbbell, History, 
-  TrendingUp, Calendar, ChevronDown, ChevronUp, Layers 
+  Calculator, Dumbbell, History, 
+  TrendingUp, Calendar, ChevronDown, ChevronUp 
 } from 'lucide-react';
 import { haptic } from '../services/telegram';
 import { calculate1RM, get1RMPercentages, formatDuration } from '../services/fitnessMath';
 
 export const ProgressTab = ({ history, programs }) => {
-  // 1RM Calculator State
   const [calcWeight, setCalcWeight] = useState(80);
   const [calcReps, setCalcReps] = useState(8);
 
-  // Exercise Filter State
   const [selectedExercise, setSelectedExercise] = useState('Жим штанги лежачи');
   const [expandedHistoryId, setExpandedHistoryId] = useState(null);
 
   const calculated1RM = calculate1RM(calcWeight, calcReps);
   const percentages = get1RMPercentages(calculated1RM);
 
-  // Collect all unique exercise names from programs and history
   const allExerciseNames = Array.from(
     new Set([
       'Жим штанги лежачи',
@@ -30,7 +27,6 @@ export const ProgressTab = ({ history, programs }) => {
     ])
   );
 
-  // Extract history points for selected exercise
   const exerciseHistory = history
     .map((w) => {
       const ex = w.exercises?.find((e) => e.name.toLowerCase() === selectedExercise.toLowerCase());
@@ -50,75 +46,77 @@ export const ProgressTab = ({ history, programs }) => {
     .reverse();
 
   return (
-    <div className="flex-1 pb-24 pt-3 px-4 max-w-md mx-auto w-full">
-      {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-          <span>Прогрес & 1ПМ</span>
-        </h1>
-        <p className="text-xs text-[#8b949e]">Аналіз сили, прогресія ваги та калькулятор</p>
+    <div className="flex-1 pb-28 pt-4 px-4 max-w-md mx-auto w-full">
+      {/* Top Banner */}
+      <div className="mb-5 bg-[#12151D] border border-[#232734] rounded-3xl p-4 shadow-lg">
+        <span className="text-[11px] font-black uppercase tracking-widest text-[#8E95A5] block">
+          СИЛОВИЙ АНАЛІЗ
+        </span>
+        <h2 className="text-2xl font-black text-white uppercase italic tracking-tight font-['Space_Grotesk',sans-serif]">
+          ПРОГРЕС & 1ПМ
+        </h2>
       </div>
 
       {/* 1RM Calculator Card */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 mb-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
-            <Calculator size={18} />
+      <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 mb-5 shadow-lg">
+        <div className="flex items-center gap-2.5 mb-3.5">
+          <div className="p-2 rounded-xl bg-[#CCFF00]/15 text-[#CCFF00] border border-[#CCFF00]/30">
+            <Calculator size={20} strokeWidth={2.5} />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-white leading-tight">
-              Калькулятор 1ПМ (Одноповторний максимум)
-            </h2>
-            <span className="text-[11px] text-[#8b949e]">Розрахуй свій разовий максимум за формулою</span>
+            <h3 className="text-base font-black text-white uppercase italic leading-tight font-['Space_Grotesk',sans-serif]">
+              Калькулятор 1ПМ (Разовий максимум)
+            </h3>
+            <span className="text-xs font-bold text-[#8E95A5] uppercase tracking-wider">Розрахунок за формулами Epley & Brzycki</span>
           </div>
         </div>
 
-        {/* Inputs */}
+        {/* Big Numeric Inputs */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-[#0d1117] border border-[#30363d] rounded-xl p-2.5 text-center">
-            <label className="text-[10px] uppercase font-bold text-[#8b949e] block mb-1">
-              Вага (кг)
+          <div className="bg-[#08090C] border border-[#232734] rounded-2xl p-3 text-center">
+            <label className="text-[10px] uppercase font-black text-[#8E95A5] tracking-widest block mb-1">
+              ВАГА (КГ)
             </label>
             <input
               type="number"
               value={calcWeight}
               onChange={(e) => setCalcWeight(e.target.value)}
-              className="w-full bg-transparent text-center font-mono font-bold text-lg text-white focus:outline-none"
+              className="w-full bg-transparent text-center font-stat font-black text-2xl text-white focus:outline-none"
             />
           </div>
-          <div className="bg-[#0d1117] border border-[#30363d] rounded-xl p-2.5 text-center">
-            <label className="text-[10px] uppercase font-bold text-[#8b949e] block mb-1">
-              Повтори
+          <div className="bg-[#08090C] border border-[#232734] rounded-2xl p-3 text-center">
+            <label className="text-[10px] uppercase font-black text-[#8E95A5] tracking-widest block mb-1">
+              ПОВТОРИ
             </label>
             <input
               type="number"
               value={calcReps}
               onChange={(e) => setCalcReps(e.target.value)}
-              className="w-full bg-transparent text-center font-mono font-bold text-lg text-white focus:outline-none"
+              className="w-full bg-transparent text-center font-stat font-black text-2xl text-white focus:outline-none"
             />
           </div>
         </div>
 
-        {/* Big 1RM Result Banner */}
-        <div className="bg-gradient-to-br from-emerald-500/20 via-[#1c2128] to-[#161b22] border border-emerald-500/30 rounded-xl p-3.5 text-center mb-4">
-          <span className="text-[11px] text-emerald-300 font-semibold uppercase tracking-wider block">
-            Орієнтовний 1ПМ:
+        {/* GIANT 1RM Result Banner */}
+        <div className="bg-gradient-to-br from-[#CCFF00]/20 via-[#182015] to-[#12151D] border-2 border-[#CCFF00] rounded-2xl p-4 text-center mb-4 glow-volt-sm">
+          <span className="text-xs font-black text-[#CCFF00] uppercase tracking-widest block">
+            ТЕОРЕТИЧНИЙ МАКСИМУМ (1 REP MAX):
           </span>
-          <div className="text-3xl font-black font-mono text-emerald-400 mt-0.5">
-            {calculated1RM} <span className="text-base font-normal text-[#8b949e]">кг</span>
+          <div className="text-4xl font-black font-stat text-white mt-1">
+            {calculated1RM} <span className="text-lg font-bold text-[#CCFF00]">КГ</span>
           </div>
         </div>
 
-        {/* Percentage Grid */}
+        {/* Percentages Grid */}
         <div>
-          <span className="text-[10px] font-bold text-[#8b949e] uppercase tracking-wider block mb-2">
-            Тренувальні відсотки від максимуму:
+          <span className="text-[10px] font-black text-[#8E95A5] uppercase tracking-widest block mb-2.5">
+            ТРЕНУВАЛЬНІ ВІДСОТКИ НАВАНТАЖЕННЯ:
           </span>
-          <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
+          <div className="grid grid-cols-3 gap-2 text-center">
             {percentages.slice(0, 6).map((p) => (
-              <div key={p.percent} className="bg-[#0d1117] border border-[#21262d] rounded-lg py-1.5 px-1">
-                <span className="text-[10px] text-[#8b949e] block">{p.percent}%</span>
-                <span className="font-mono font-bold text-white text-xs">{p.weight} кг</span>
+              <div key={p.percent} className="bg-[#08090C] border border-[#1F2432] rounded-xl py-2 px-1">
+                <span className="text-[11px] font-black text-[#8E95A5] block">{p.percent}%</span>
+                <span className="font-stat font-black text-white text-sm">{p.weight} <span className="text-[10px] text-[#CCFF00]">кг</span></span>
               </div>
             ))}
           </div>
@@ -126,26 +124,26 @@ export const ProgressTab = ({ history, programs }) => {
       </div>
 
       {/* Exercise Progression Card */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 mb-5 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
-              <TrendingUp size={18} />
-            </div>
-            <h2 className="text-sm font-bold text-white leading-tight">
+      <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 mb-5 shadow-lg">
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="p-2 rounded-xl bg-[#CCFF00]/15 text-[#CCFF00] border border-[#CCFF00]/30">
+            <TrendingUp size={20} strokeWidth={2.5} />
+          </div>
+          <div>
+            <h3 className="text-base font-black text-white uppercase italic leading-tight font-['Space_Grotesk',sans-serif]">
               Динаміка ваги у вправі
-            </h2>
+            </h3>
+            <span className="text-xs font-bold text-[#8E95A5] uppercase tracking-wider">Ріст показників</span>
           </div>
         </div>
 
-        {/* Exercise Selector */}
         <select
           value={selectedExercise}
           onChange={(e) => {
             haptic.selection();
             setSelectedExercise(e.target.value);
           }}
-          className="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 mb-3"
+          className="w-full bg-[#08090C] border border-[#2B3142] rounded-2xl px-3.5 py-3 text-xs font-bold text-white focus:outline-none focus:border-[#CCFF00] mb-3.5"
         >
           {allExerciseNames.map((name) => (
             <option key={name} value={name}>
@@ -154,28 +152,27 @@ export const ProgressTab = ({ history, programs }) => {
           ))}
         </select>
 
-        {/* Progress List / Chart points */}
         {exerciseHistory.length === 0 ? (
-          <div className="text-center py-6 text-xs text-[#8b949e]">
-            Немає записів для цієї вправи у завершених тренуваннях.
+          <div className="text-center py-8 text-xs font-bold text-[#8E95A5] uppercase tracking-wider">
+            Немає записів для цієї вправи
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {exerciseHistory.map((item, idx) => (
               <div
                 key={idx}
-                className="bg-[#0d1117] border border-[#21262d] rounded-xl p-2.5 flex items-center justify-between text-xs"
+                className="bg-[#08090C] border border-[#1F2432] rounded-2xl p-3.5 flex items-center justify-between"
               >
                 <div>
-                  <span className="text-white font-semibold block">{item.dayName}</span>
-                  <span className="text-[10px] text-[#8b949e]">{item.date}</span>
+                  <span className="text-white font-black text-sm uppercase block">{item.dayName}</span>
+                  <span className="text-[11px] font-bold text-[#8E95A5]">{item.date}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-emerald-400 font-mono font-bold text-sm block">
-                    {item.maxWeight} кг
+                  <span className="text-[#CCFF00] font-stat font-black text-base block glow-volt-sm">
+                    {item.maxWeight} КГ
                   </span>
-                  <span className="text-[10px] text-[#8b949e]">
-                    {item.sets.length} {item.sets.length === 1 ? 'підхід' : 'підходи'}
+                  <span className="text-[10px] font-bold text-[#8E95A5] uppercase">
+                    {item.sets.length} {item.sets.length === 1 ? 'СЕТ' : 'СЕТИ'}
                   </span>
                 </div>
               </div>
@@ -184,21 +181,24 @@ export const ProgressTab = ({ history, programs }) => {
         )}
       </div>
 
-      {/* Past Workouts History */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
-            <History size={18} />
+      {/* History List */}
+      <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 shadow-lg">
+        <div className="flex items-center gap-2.5 mb-3.5">
+          <div className="p-2 rounded-xl bg-[#CCFF00]/15 text-[#CCFF00] border border-[#CCFF00]/30">
+            <History size={20} strokeWidth={2.5} />
           </div>
-          <h2 className="text-sm font-bold text-white leading-tight">
-            Історія тренувань ({history.length})
-          </h2>
+          <div>
+            <h3 className="text-base font-black text-white uppercase italic leading-tight font-['Space_Grotesk',sans-serif]">
+              Історія тренувань ({history.length})
+            </h3>
+            <span className="text-xs font-bold text-[#8E95A5] uppercase tracking-wider">Журнал завершених сесій</span>
+          </div>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {history.length === 0 ? (
-            <div className="text-center py-6 text-xs text-[#8b949e]">
-              Історія порожня. Заверши своє перше тренування!
+            <div className="text-center py-8 text-xs font-bold text-[#8E95A5] uppercase tracking-wider">
+              Історія порожня. Проведи своє перше тренування!
             </div>
           ) : (
             history.map((workout) => {
@@ -208,7 +208,7 @@ export const ProgressTab = ({ history, programs }) => {
               return (
                 <div
                   key={workout.id}
-                  className="bg-[#0d1117] border border-[#21262d] rounded-xl p-3 text-xs cursor-pointer select-none"
+                  className="bg-[#08090C] border border-[#1F2432] rounded-2xl p-3.5 cursor-pointer select-none active:bg-[#12151D]"
                   onClick={() => {
                     haptic.selection();
                     setExpandedHistoryId(isExpanded ? null : workout.id);
@@ -216,28 +216,27 @@ export const ProgressTab = ({ history, programs }) => {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-white leading-snug">{workout.dayName}</h4>
-                      <span className="text-[10px] text-[#8b949e]">
+                      <h4 className="font-black text-white uppercase text-sm leading-snug">{workout.dayName}</h4>
+                      <span className="text-[11px] font-bold text-[#8E95A5]">
                         {dateStr} • {formatDuration(workout.durationSeconds || 0)}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-bold font-mono text-[11px]">
-                        {workout.stats?.totalTonnage || 0} кг
+                      <span className="px-2.5 py-1 rounded-xl bg-[#CCFF00]/15 text-[#CCFF00] font-black font-stat text-xs border border-[#CCFF00]/30">
+                        {workout.stats?.totalTonnage || 0} КГ
                       </span>
-                      {isExpanded ? <ChevronUp size={16} className="text-[#8b949e]" /> : <ChevronDown size={16} className="text-[#8b949e]" />}
+                      {isExpanded ? <ChevronUp size={18} className="text-[#8E95A5]" /> : <ChevronDown size={18} className="text-[#8E95A5]" />}
                     </div>
                   </div>
 
-                  {/* Expanded Breakdown */}
                   {isExpanded && (
-                    <div className="mt-3 pt-2 border-t border-[#21262d] space-y-1.5">
+                    <div className="mt-3 pt-2.5 border-t border-[#1F2432] space-y-1.5">
                       {workout.exercises?.map((ex, exI) => (
-                        <div key={exI} className="text-[11px] text-[#8b949e]">
-                          <span className="text-white font-medium">{ex.name}: </span>
-                          <span className="font-mono">
-                            {ex.sets?.filter((s) => s.completed).map((s) => `${s.weight}×${s.reps}`).join(', ') || '—'}
+                        <div key={exI} className="text-xs text-[#8E95A5]">
+                          <span className="text-white font-bold">{ex.name}: </span>
+                          <span className="font-stat text-[#CCFF00]">
+                            {ex.sets?.filter((s) => s.completed).map((s) => `${s.weight}кг×${s.reps}`).join(', ') || '—'}
                           </span>
                         </div>
                       ))}

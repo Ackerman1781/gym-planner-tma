@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Check, Plus, Trash2, Clock, Dumbbell, 
-  RotateCcw, Trophy, X, ChevronRight, Sparkles, AlertCircle 
+  RotateCcw, Trophy, X, Zap 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { haptic } from '../services/telegram';
@@ -17,7 +17,6 @@ export const ActiveWorkoutModal = ({
 }) => {
   const [elapsed, setElapsed] = useState(0);
 
-  // Total workout timer
   useEffect(() => {
     if (!activeWorkout) return;
     const startTime = new Date(activeWorkout.startedAt).getTime();
@@ -34,13 +33,15 @@ export const ActiveWorkoutModal = ({
 
   if (!activeWorkout) {
     return (
-      <div className="flex-1 pb-24 pt-12 px-4 max-w-md mx-auto w-full text-center">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center mb-4">
-          <Dumbbell size={32} />
+      <div className="flex-1 pb-28 pt-16 px-4 max-w-md mx-auto w-full text-center">
+        <div className="w-20 h-20 rounded-3xl bg-[#CCFF00]/10 border-2 border-[#CCFF00]/30 text-[#CCFF00] mx-auto flex items-center justify-center mb-5 glow-volt-sm">
+          <Dumbbell size={40} strokeWidth={2.5} />
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">Немає активного тренування</h2>
-        <p className="text-xs text-[#8b949e] max-w-xs mx-auto mb-6">
-          Перейди у вкладку «Зал», обери потрібний день та натисни «Почати», щоб записувати свої підходи!
+        <h2 className="text-2xl font-black text-white uppercase italic tracking-tight mb-2 font-['Space_Grotesk',sans-serif]">
+          НЕМАЄ АКТИВНОГО ТРЕНУВАННЯ
+        </h2>
+        <p className="text-sm font-bold text-[#8E95A5] max-w-xs mx-auto mb-6">
+          Перейди у вкладку «ЗАЛ», обери день тренування та тисни «ПОЧАТИ»!
         </p>
       </div>
     );
@@ -65,7 +66,6 @@ export const ActiveWorkoutModal = ({
 
     if (isNowCompleted) {
       haptic.success();
-      // Start rest timer (e.g. 90 seconds)
       onTriggerRestTimer(90);
     } else {
       haptic.impact('light');
@@ -73,7 +73,7 @@ export const ActiveWorkoutModal = ({
   };
 
   const handleAddSet = (exIdx) => {
-    haptic.impact('light');
+    haptic.impact('medium');
     const updatedEx = [...activeWorkout.exercises];
     const prevSets = updatedEx[exIdx].sets;
     const lastSet = prevSets[prevSets.length - 1];
@@ -90,20 +90,18 @@ export const ActiveWorkoutModal = ({
   };
 
   const handleDeleteSet = (exIdx, setIdx) => {
-    haptic.impact('medium');
+    haptic.impact('heavy');
     const updatedEx = [...activeWorkout.exercises];
     updatedEx[exIdx].sets.splice(setIdx, 1);
-    // Renumber
     updatedEx[exIdx].sets.forEach((s, idx) => { s.setNum = idx + 1; });
     setActiveWorkout({ ...activeWorkout, exercises: updatedEx });
   };
 
-  // Quick fill using last performance
   const handleCopyLastWeights = (exIdx, exerciseName) => {
     const last = getLastExercisePerformance(exerciseName, history);
     if (!last || !last.sets?.length) return;
 
-    haptic.impact('medium');
+    haptic.impact('heavy');
     const updatedEx = [...activeWorkout.exercises];
     updatedEx[exIdx].sets = last.sets.map((s, idx) => ({
       setNum: idx + 1,
@@ -120,8 +118,8 @@ export const ActiveWorkoutModal = ({
     const stats = calculateWorkoutStats(activeWorkout.exercises);
 
     confetti({
-      particleCount: 100,
-      spread: 70,
+      particleCount: 120,
+      spread: 80,
       origin: { y: 0.6 }
     });
 
@@ -134,7 +132,7 @@ export const ActiveWorkoutModal = ({
 
   const handleCancelWorkout = () => {
     haptic.impact('heavy');
-    if (confirm('Ви впевнені, що хочете скасувати це тренування? Дані не збережуться.')) {
+    if (confirm('Скасувати тренування без збереження?')) {
       setActiveWorkout(null);
     }
   };
@@ -142,44 +140,45 @@ export const ActiveWorkoutModal = ({
   const liveStats = calculateWorkoutStats(activeWorkout.exercises);
 
   return (
-    <div className="flex-1 pb-28 pt-3 px-4 max-w-md mx-auto w-full">
-      {/* Top Bar with Live Timer & Finish Button */}
-      <div className="bg-[#161b22] border border-emerald-500/40 rounded-2xl p-3.5 mb-4 shadow-lg sticky top-2 z-30 backdrop-blur-md">
-        <div className="flex items-center justify-between mb-2">
+    <div className="flex-1 pb-32 pt-4 px-4 max-w-md mx-auto w-full">
+      {/* Sticky High-Contrast HUD Header */}
+      <div className="bg-[#12151D] border-2 border-[#2B3142] rounded-3xl p-4 mb-5 shadow-2xl sticky top-2 z-30 backdrop-blur-xl">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-              Активне тренування
+            <span className="text-[10px] uppercase font-black text-[#CCFF00] tracking-widest flex items-center gap-1.5 glow-volt-sm">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#CCFF00] animate-ping"></span>
+              LIVE WORKOUT // СЕСІЯ
             </span>
-            <h2 className="text-base font-bold text-white leading-tight">
+            <h2 className="text-xl font-black text-white uppercase italic tracking-tight font-['Space_Grotesk',sans-serif]">
               {activeWorkout.dayName}
             </h2>
           </div>
 
-          <div className="flex items-center gap-1 font-mono text-sm font-bold text-white bg-[#0d1117] border border-[#30363d] px-2.5 py-1 rounded-xl">
-            <Clock size={14} className="text-emerald-400" />
+          {/* Big Digital Timer */}
+          <div className="flex items-center gap-1.5 font-stat text-lg font-black text-[#CCFF00] bg-[#08090C] border border-[#2B3142] px-3.5 py-1.5 rounded-2xl glow-volt-sm">
+            <Clock size={16} strokeWidth={2.5} />
             <span>{formatDuration(elapsed)}</span>
           </div>
         </div>
 
-        {/* Quick Summary Bar */}
-        <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-[#21262d] text-xs">
+        {/* Big Athletic Metrics Bar */}
+        <div className="grid grid-cols-3 gap-2 text-center pt-3 border-t border-[#1C202C]">
           <div>
-            <span className="text-[10px] text-[#8b949e] block">Підходів</span>
-            <span className="font-bold text-white">{liveStats.totalSets}</span>
+            <span className="text-[10px] font-black uppercase text-[#8E95A5] tracking-wider block">СЕТИ</span>
+            <span className="font-stat text-lg font-black text-white">{liveStats.totalSets}</span>
           </div>
           <div>
-            <span className="text-[10px] text-[#8b949e] block">Повторень</span>
-            <span className="font-bold text-white">{liveStats.totalReps}</span>
+            <span className="text-[10px] font-black uppercase text-[#8E95A5] tracking-wider block">ПОВТОРИ</span>
+            <span className="font-stat text-lg font-black text-white">{liveStats.totalReps}</span>
           </div>
           <div>
-            <span className="text-[10px] text-[#8b949e] block">Тоннаж</span>
-            <span className="font-bold text-emerald-400">{liveStats.totalTonnage} кг</span>
+            <span className="text-[10px] font-black uppercase text-[#8E95A5] tracking-wider block">ТОННАЖ</span>
+            <span className="font-stat text-lg font-black text-[#CCFF00]">{liveStats.totalTonnage} <span className="text-xs font-normal text-[#8E95A5]">кг</span></span>
           </div>
         </div>
       </div>
 
-      {/* Exercises List */}
+      {/* Exercises Cards */}
       <div className="space-y-4 mb-6">
         {activeWorkout.exercises.map((ex, exIdx) => {
           const lastPerf = getLastExercisePerformance(ex.name, history);
@@ -187,73 +186,73 @@ export const ActiveWorkoutModal = ({
           return (
             <div
               key={ex.id || exIdx}
-              className="bg-[#161b22] border border-[#30363d] rounded-2xl p-3.5 shadow-sm"
+              className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 shadow-lg"
             >
               {/* Exercise Header */}
-              <div className="flex items-start justify-between mb-2.5">
+              <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="text-sm font-bold text-white leading-snug">
+                  <h3 className="text-base font-black text-white uppercase italic leading-tight font-['Space_Grotesk',sans-serif]">
                     {ex.name}
                   </h3>
-                  <span className="text-[11px] text-[#8b949e]">
+                  <span className="text-xs font-extrabold text-[#8E95A5] uppercase tracking-wider">
                     {ex.muscle || 'Загальне'} • Ціль: {ex.targetSets} × {ex.targetReps}
                   </span>
                 </div>
 
-                {/* Quick Fill "Як минулого разу" */}
+                {/* Big "Як минулого разу" button */}
                 {lastPerf && (
                   <button
                     onClick={() => handleCopyLastWeights(exIdx, ex.name)}
-                    className="px-2 py-1 bg-emerald-500/10 active:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-xl text-[10px] font-bold flex items-center gap-1 active:scale-95 transition-all"
+                    className="px-2.5 py-1.5 bg-[#CCFF00]/15 active-press text-[#CCFF00] border border-[#CCFF00]/40 rounded-xl text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 glow-volt-sm shrink-0"
                   >
-                    <RotateCcw size={11} />
+                    <RotateCcw size={13} strokeWidth={2.5} />
                     <span>Як минулого разу</span>
                   </button>
                 )}
               </div>
 
-              {/* Last Performance Hint */}
+              {/* Last Performance Bar */}
               {lastPerf && lastPerf.sets?.length > 0 && (
-                <div className="text-[11px] bg-[#0d1117] text-[#8b949e] px-2.5 py-1 rounded-xl mb-3 border border-[#21262d] flex items-center gap-1.5 overflow-x-auto">
-                  <span className="text-emerald-400 font-semibold shrink-0">Минулий раз:</span>
-                  <div className="flex items-center gap-2 truncate">
+                <div className="text-xs bg-[#08090C] text-[#8E95A5] px-3 py-2 rounded-2xl mb-3.5 border border-[#1F2432] flex items-center gap-2 overflow-x-auto">
+                  <span className="text-[#CCFF00] font-black uppercase tracking-wider shrink-0">Минулий раз:</span>
+                  <div className="flex items-center gap-2.5 font-stat font-bold text-white truncate">
                     {lastPerf.sets.map((s, idx) => (
-                      <span key={idx} className="font-mono">
-                        {s.weight}кг×{s.reps}
+                      <span key={idx} className="bg-[#161A24] px-1.5 py-0.5 rounded-lg border border-[#262B3A]">
+                        {s.weight}кг × {s.reps}
                       </span>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Sets Table */}
-              <div className="space-y-2 mb-3">
-                <div className="grid grid-cols-12 text-[10px] uppercase font-bold text-[#8b949e] px-1 text-center">
-                  <span className="col-span-2">Сет</span>
-                  <span className="col-span-5">Вага (кг)</span>
-                  <span className="col-span-3">Повтори</span>
-                  <span className="col-span-2">Готово</span>
+              {/* Big Bold Sets Rows */}
+              <div className="space-y-2.5 mb-3.5">
+                <div className="grid grid-cols-12 text-[10px] uppercase font-black text-[#8E95A5] tracking-widest px-1 text-center">
+                  <span className="col-span-2">СЕТ</span>
+                  <span className="col-span-5">ВАГА (КГ)</span>
+                  <span className="col-span-3">ПОВТОРИ</span>
+                  <span className="col-span-2">ГОТОВО</span>
                 </div>
 
                 {ex.sets.map((set, setIdx) => (
                   <div
                     key={setIdx}
-                    className={`grid grid-cols-12 items-center gap-1.5 p-1.5 rounded-xl border transition-all ${
+                    className={`grid grid-cols-12 items-center gap-1.5 p-2 rounded-2xl border transition-all ${
                       set.completed
-                        ? 'bg-emerald-950/20 border-emerald-500/40'
-                        : 'bg-[#0d1117] border-[#21262d]'
+                        ? 'bg-[#182210] border-[#CCFF00]/50 shadow-[0_0_15px_rgba(204,255,0,0.1)]'
+                        : 'bg-[#08090C] border-[#232734]'
                     }`}
                   >
                     {/* Set Number */}
-                    <span className="col-span-2 text-center text-xs font-mono font-bold text-white">
-                      #{set.setNum}
+                    <span className="col-span-2 text-center font-stat text-sm font-black text-white">
+                      {set.setNum < 10 ? `0${set.setNum}` : set.setNum}
                     </span>
 
-                    {/* Weight with +/- 2.5kg quick controls */}
+                    {/* Big Weight Inputs & Quick Buttons */}
                     <div className="col-span-5 flex items-center justify-center gap-1">
                       <button
                         onClick={() => handleQuickAdjust(exIdx, setIdx, 'weight', -2.5)}
-                        className="w-5 h-7 bg-[#21262d] active:bg-[#30363d] rounded text-[10px] font-bold text-[#8b949e] hover:text-white"
+                        className="w-7 h-10 bg-[#161A24] active-press rounded-xl text-xs font-black text-[#8E95A5] hover:text-white border border-[#2B3142]"
                       >
                         -
                       </button>
@@ -262,38 +261,38 @@ export const ActiveWorkoutModal = ({
                         step="any"
                         value={set.weight}
                         onChange={(e) => handleUpdateSet(exIdx, setIdx, 'weight', e.target.value)}
-                        className="w-14 bg-[#161b22] border border-[#30363d] rounded-lg py-1 text-center font-mono font-bold text-xs text-white focus:outline-none focus:border-emerald-500"
+                        className="w-16 bg-[#12151D] border border-[#2B3142] rounded-xl py-2 text-center font-stat font-black text-base text-white focus:outline-none focus:border-[#CCFF00]"
                       />
                       <button
                         onClick={() => handleQuickAdjust(exIdx, setIdx, 'weight', 2.5)}
-                        className="w-5 h-7 bg-[#21262d] active:bg-[#30363d] rounded text-[10px] font-bold text-[#8b949e] hover:text-white"
+                        className="w-7 h-10 bg-[#161A24] active-press rounded-xl text-xs font-black text-[#8E95A5] hover:text-white border border-[#2B3142]"
                       >
                         +
                       </button>
                     </div>
 
-                    {/* Reps with +/- 1 quick controls */}
+                    {/* Big Reps Input */}
                     <div className="col-span-3 flex items-center justify-center gap-1">
                       <input
                         type="number"
                         value={set.reps}
                         onChange={(e) => handleUpdateSet(exIdx, setIdx, 'reps', e.target.value)}
-                        className="w-11 bg-[#161b22] border border-[#30363d] rounded-lg py-1 text-center font-mono font-bold text-xs text-white focus:outline-none focus:border-emerald-500"
+                        className="w-12 bg-[#12151D] border border-[#2B3142] rounded-xl py-2 text-center font-stat font-black text-base text-white focus:outline-none focus:border-[#CCFF00]"
                       />
                     </div>
 
-                    {/* Checkbox button */}
+                    {/* Huge Checkbox */}
                     <div className="col-span-2 flex items-center justify-center">
                       <button
                         type="button"
                         onClick={() => handleToggleSet(exIdx, setIdx)}
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center active-press transition-all ${
                           set.completed
-                            ? 'bg-emerald-500 text-black shadow-sm'
-                            : 'border border-[#484f58] hover:border-emerald-400 bg-[#161b22] text-transparent'
+                            ? 'bg-[#CCFF00] text-black glow-volt-sm'
+                            : 'border-2 border-[#363C4E] hover:border-[#CCFF00] bg-[#12151D] text-transparent'
                         }`}
                       >
-                        <Check size={16} strokeWidth={3} />
+                        <Check size={20} strokeWidth={3.5} />
                       </button>
                     </div>
                   </div>
@@ -303,9 +302,9 @@ export const ActiveWorkoutModal = ({
               {/* Add Set Button */}
               <button
                 onClick={() => handleAddSet(exIdx)}
-                className="w-full py-1.5 border border-dashed border-[#30363d] text-[#8b949e] hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1 active:scale-98 transition-all"
+                className="w-full py-2.5 border-2 border-dashed border-[#232734] hover:border-[#CCFF00]/40 text-[#8E95A5] hover:text-[#CCFF00] rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 active-press transition-all"
               >
-                <Plus size={14} />
+                <Plus size={16} strokeWidth={3} />
                 <span>Додати підхід</span>
               </button>
             </div>
@@ -313,19 +312,19 @@ export const ActiveWorkoutModal = ({
         })}
       </div>
 
-      {/* Complete or Cancel Workout Controls */}
-      <div className="space-y-2">
+      {/* Complete or Cancel Controls */}
+      <div className="space-y-3">
         <button
           onClick={handleCompleteWorkout}
-          className="w-full py-3.5 bg-emerald-500 active:scale-98 text-black rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
+          className="w-full py-4 bg-[#CCFF00] active-press text-black rounded-3xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 glow-volt transition-all shadow-xl"
         >
-          <Trophy size={18} />
-          <span>Завершити тренування</span>
+          <Trophy size={20} strokeWidth={2.5} />
+          <span>ЗАВЕРШИТИ ТРЕНУВАННЯ</span>
         </button>
 
         <button
           onClick={handleCancelWorkout}
-          className="w-full py-2.5 text-[#8b949e] hover:text-rose-400 text-xs font-semibold"
+          className="w-full py-2 text-[#8E95A5] hover:text-rose-400 text-xs font-black uppercase tracking-wider text-center"
         >
           Скасувати без збереження
         </button>

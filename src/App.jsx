@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  initTelegramApp, haptic, tg 
+  initTelegramApp, haptic 
 } from './services/telegram';
 import { 
   loadData, saveTasks, savePrograms, saveHistory, saveActiveWorkout,
   DEFAULT_PROGRAMS, DEFAULT_TASKS, DEFAULT_HISTORY 
 } from './services/storage';
 
+import { HeaderLogo } from './components/HeaderLogo';
 import { Navbar } from './components/Navbar';
 import { PlannerTab } from './components/PlannerTab';
 import { WorkoutsTab } from './components/WorkoutsTab';
@@ -106,7 +107,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0d1117] text-[#f0f6fc] antialiased">
+    <div className="min-h-screen flex flex-col bg-[#08090C] text-[#F3F4F6] antialiased">
+      {/* Dynamic Athletic Header with SVG Logo */}
+      <HeaderLogo />
+
       {/* Main Tab Content */}
       <main className="flex-1 flex flex-col">
         {currentTab === 'planner' && (
@@ -156,7 +160,7 @@ export default function App() {
         />
       )}
 
-      {/* Telegram-style Bottom Navigation Bar */}
+      {/* Telegram-style Athletic Bottom Navigation Bar */}
       <Navbar
         currentTab={currentTab}
         setTab={setTab}

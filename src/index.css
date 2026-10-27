@@ -1,22 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  --tg-theme-bg-color: #0d1117;
-  --tg-theme-secondary-bg-color: #161b22;
-  --tg-theme-text-color: #f0f6fc;
-  --tg-theme-hint-color: #8b949e;
-  --tg-theme-link-color: #58a6ff;
-  --tg-theme-button-color: #238636;
-  --tg-theme-button-text-color: #ffffff;
+  --volt: #CCFF00;
+  --volt-glow: rgba(204, 255, 0, 0.25);
+  --dark-bg: #08090C;
+  --dark-card: #11141B;
+  --dark-card-hover: #171B24;
+  --dark-border: #232734;
+  --dark-border-subtle: #191C26;
+  --text-muted: #8E95A5;
 }
 
-/* Telegram theme variables binding */
 body {
-  background-color: var(--tg-theme-bg-color, #0d1117);
-  color: var(--tg-theme-text-color, #f0f6fc);
+  background-color: var(--dark-bg);
+  color: #F3F4F6;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   touch-action: pan-y;
+}
+
+/* Custom Volt Neon Glow */
+.glow-volt {
+  box-shadow: 0 0 25px rgba(204, 255, 0, 0.25);
+}
+
+.glow-volt-sm {
+  box-shadow: 0 0 12px rgba(204, 255, 0, 0.2);
 }
 
 /* Hide scrollbars */
@@ -28,7 +37,7 @@ body {
   scrollbar-width: none;
 }
 
-/* Smooth input styling */
+/* Numerical inputs styling */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -38,8 +47,16 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Custom glowing & active states */
+/* Press interaction feedback */
 .active-press {
-  transform: scale(0.97);
-  transition: transform 0.1s ease;
+  transition: transform 0.08s ease, filter 0.08s ease;
+}
+.active-press:active {
+  transform: scale(0.96);
+  filter: brightness(0.92);
+}
+
+/* Monospace stats font */
+.font-stat {
+  font-family: 'JetBrains Mono', monospace;
 }

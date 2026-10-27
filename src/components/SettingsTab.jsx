@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { 
-  Cloud, Download, Upload, RefreshCw, 
-  User, CheckCircle2, ShieldCheck, HelpCircle, Bot, ExternalLink 
+  Cloud, Download, Upload, ShieldCheck, Bot 
 } from 'lucide-react';
-import { haptic, getTelegramUser, tg } from '../services/telegram';
+import { haptic, getTelegramUser } from '../services/telegram';
 import { DEFAULT_PROGRAMS, DEFAULT_TASKS, DEFAULT_HISTORY } from '../services/storage';
 
 export const SettingsTab = ({ 
@@ -15,10 +14,9 @@ export const SettingsTab = ({
   setHistory 
 }) => {
   const user = getTelegramUser();
-  const [copied, setCopied] = useState(false);
 
   const handleExportJSON = () => {
-    haptic.impact('medium');
+    haptic.impact('heavy');
     const data = {
       version: 1,
       exportedAt: new Date().toISOString(),
@@ -50,7 +48,7 @@ export const SettingsTab = ({
         if (parsed.programs) setPrograms(parsed.programs);
         if (parsed.history) setHistory(parsed.history);
         haptic.success();
-        alert('Дані успішно відновлено з файлу!');
+        alert('Дані успішно відновлено!');
       } catch (err) {
         alert('Помилка читання файлу резервної копії.');
       }
@@ -69,64 +67,68 @@ export const SettingsTab = ({
   };
 
   return (
-    <div className="flex-1 pb-24 pt-3 px-4 max-w-md mx-auto w-full">
-      {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-          <span>Хмара & Налаштування</span>
-        </h1>
-        <p className="text-xs text-[#8b949e]">Автономність, хмарні копії та підключення</p>
+    <div className="flex-1 pb-28 pt-4 px-4 max-w-md mx-auto w-full">
+      {/* Top Banner */}
+      <div className="mb-5 bg-[#12151D] border border-[#232734] rounded-3xl p-4 shadow-lg">
+        <span className="text-[11px] font-black uppercase tracking-widest text-[#8E95A5] block">
+          НАЛАШТУВАННЯ
+        </span>
+        <h2 className="text-2xl font-black text-white uppercase italic tracking-tight font-['Space_Grotesk',sans-serif]">
+          СИСТЕМА & ХМАРА
+        </h2>
       </div>
 
-      {/* Telegram User Profile Card */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 mb-4 shadow-sm flex items-center gap-3">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-lg">
-          {user?.first_name?.charAt(0) || 'U'}
+      {/* Athlete Profile Card */}
+      <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 mb-4 shadow-lg flex items-center gap-3.5">
+        <div className="w-14 h-14 rounded-2xl bg-[#CCFF00]/15 border-2 border-[#CCFF00]/40 text-[#CCFF00] flex items-center justify-center font-black text-xl font-stat glow-volt-sm">
+          {user?.first_name?.charAt(0) || 'A'}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <h3 className="text-sm font-bold text-white truncate">
+            <h3 className="text-base font-black text-white uppercase truncate">
               {user?.first_name} {user?.last_name || ''}
             </h3>
-            <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
+            <ShieldCheck size={16} className="text-[#CCFF00] shrink-0" />
           </div>
-          <p className="text-xs text-[#8b949e] truncate">
-            @{user?.username || 'telegram_user'} • ID: {user?.id}
+          <p className="text-xs font-bold text-[#8E95A5] truncate font-stat mt-0.5">
+            @{user?.username || 'athlete'} • ID: {user?.id}
           </p>
         </div>
       </div>
 
       {/* Cloud Status */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 mb-4 shadow-sm">
-        <div className="flex items-center justify-between mb-2">
+      <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 mb-4 shadow-lg">
+        <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
-            <Cloud size={18} className="text-emerald-400" />
-            <h3 className="text-sm font-bold text-white">Хмарна синхронізація</h3>
+            <Cloud size={20} className="text-[#CCFF00]" />
+            <h3 className="text-sm font-black text-white uppercase tracking-wider">Синхронізація Telegram</h3>
           </div>
-          <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            Активна 24/7
+          <span className="flex items-center gap-1.5 text-[10px] font-black text-[#CCFF00] bg-[#CCFF00]/15 px-2.5 py-1 rounded-full border border-[#CCFF00]/30 glow-volt-sm uppercase">
+            <span className="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse"></span>
+            АКТИВНА 24/7
           </span>
         </div>
-        <p className="text-xs text-[#8b949e] leading-relaxed">
-          Всі твої плани, програми тренувань і підходи автоматично зберігаються в хмарі Telegram (CloudStorage) та локально на пристрої. Працює автономно навіть з вимкненим комп'ютером.
+        <p className="text-xs font-bold text-[#8E95A5] leading-relaxed">
+          Всі тренування, ваги та плани автоматично закріплені за твоїм Telegram ID. Додаток працює надійно навіть при вимкненому ПК.
         </p>
       </div>
 
-      {/* Backup & Restore Controls */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 mb-4 shadow-sm space-y-3">
-        <h3 className="text-sm font-bold text-white mb-2">Резервне копіювання</h3>
+      {/* Backup Controls */}
+      <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 mb-4 shadow-lg space-y-3">
+        <h3 className="text-xs font-black text-white uppercase tracking-wider mb-2">
+          Резервне копіювання даних
+        </h3>
 
         <button
           onClick={handleExportJSON}
-          className="w-full py-2.5 px-3 bg-[#0d1117] hover:bg-[#21262d] active:scale-98 border border-[#30363d] rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-2 transition-all"
+          className="w-full py-3 px-4 bg-[#08090C] hover:bg-[#161A24] active-press border border-[#2B3142] rounded-2xl text-xs font-black uppercase tracking-wider text-white flex items-center justify-center gap-2 transition-all shadow-sm"
         >
-          <Download size={15} className="text-emerald-400" />
+          <Download size={16} className="text-[#CCFF00]" />
           <span>Завантажити копію (JSON)</span>
         </button>
 
-        <label className="w-full py-2.5 px-3 bg-[#0d1117] hover:bg-[#21262d] active:scale-98 border border-[#30363d] rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-2 transition-all cursor-pointer">
-          <Upload size={15} className="text-emerald-400" />
+        <label className="w-full py-3 px-4 bg-[#08090C] hover:bg-[#161A24] active-press border border-[#2B3142] rounded-2xl text-xs font-black uppercase tracking-wider text-white flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm">
+          <Upload size={16} className="text-[#CCFF00]" />
           <span>Відновити з файлу (JSON)</span>
           <input
             type="file"
@@ -137,26 +139,23 @@ export const SettingsTab = ({
         </label>
       </div>
 
-      {/* How to Connect to Telegram Bot Instruction */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 mb-4 shadow-sm">
+      {/* Bot Info */}
+      <div className="bg-[#12151D] border border-[#232734] rounded-3xl p-4 mb-4 shadow-lg">
         <div className="flex items-center gap-2 mb-2">
-          <Bot size={18} className="text-emerald-400" />
-          <h3 className="text-sm font-bold text-white">Як додати кнопку в бот</h3>
+          <Bot size={18} className="text-[#CCFF00]" />
+          <h3 className="text-xs font-black text-white uppercase tracking-wider">Бот у Telegram</h3>
         </div>
-        <ol className="text-xs text-[#8b949e] space-y-2 list-decimal list-inside leading-relaxed">
-          <li>Зайди в <strong className="text-white">@BotFather</strong> у Telegram.</li>
-          <li>Введи команду <strong className="text-emerald-400">/mybots</strong> і обери свого бота.</li>
-          <li>Натисни <strong className="text-white">Bot Settings → Menu Button → Configure Menu Button</strong>.</li>
-          <li>Вкажи URL сайту (який видасть Vercel) та назву, наприклад: <strong className="text-white">🏋️ IronPlan</strong>.</li>
-        </ol>
+        <p className="text-xs font-bold text-[#8E95A5] leading-relaxed">
+          Додаток прив'язаний до <strong className="text-white">@ackerman_gym_bot</strong>. Меню налаштовано через кнопку запуску.
+        </p>
       </div>
 
-      {/* Reset */}
+      {/* Reset Defaults */}
       <button
         onClick={handleResetDefaults}
-        className="w-full py-2 text-[#8b949e] hover:text-rose-400 text-xs font-semibold text-center"
+        className="w-full py-2.5 text-[#8E95A5] hover:text-rose-400 text-xs font-black uppercase tracking-wider text-center"
       >
-        Скинути дані до тестових зразків
+        Скинути все до початкових зразків
       </button>
     </div>
   );
