@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  --tg-theme-bg-color: #0d1117;
+  --tg-theme-secondary-bg-color: #161b22;
+  --tg-theme-text-color: #f0f6fc;
+  --tg-theme-hint-color: #8b949e;
+  --tg-theme-link-color: #58a6ff;
+  --tg-theme-button-color: #238636;
+  --tg-theme-button-text-color: #ffffff;
+}
+
+/* Telegram theme variables binding */
+body {
+  background-color: var(--tg-theme-bg-color, #0d1117);
+  color: var(--tg-theme-text-color, #f0f6fc);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+/* Hide scrollbars */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth input styling */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Custom glowing & active states */
+.active-press {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
