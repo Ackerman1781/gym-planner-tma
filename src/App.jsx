@@ -18,6 +18,9 @@ import { TrainingTab } from './components/TrainingTab';
 import { SquadTab } from './components/SquadTab';
 import { SettingsModal } from './components/SettingsModal';
 import { Bell, X } from 'lucide-react';
+import { 
+  syncMyProfileToCloud, fetchCloudSquad, checkTelegramStartParam 
+} from './services/cloudSquad';
 
 export default function App() {
   const [currentTab, setTab] = useState('home');
@@ -44,15 +47,42 @@ export default function App() {
   useEffect(() => {
     initTelegramApp();
 
-    loadData().then((data) => {
+    loadData().then(async (data) => {
       if (data.tasks) setTasks(data.tasks);
       if (data.programs) setPrograms(data.programs);
-      if (data.squad) setSquad(data.squad);
       if (data.profile) setProfile(data.profile);
       if (data.records) setRecords(data.records);
       if (data.history) setHistory(data.history);
       if (data.activeWorkout) setActiveWorkout(data.activeWorkout);
+
+      let squadList = data.squad || DEFAULT_SQUAD;
+
+      // Check if user launched app via a friend's Telegram invite link
+      const invitedFriend = checkTelegramStartParam();
+      if (invitedFriend) {
+        const exists = squadList.some(
+          (f) => f.name.toLowerCase() === invitedFriend.name.toLowerCase()
+        );
+        if (!exists) {
+          squadList = [...squadList, invitedFriend];
+          haptic.success();
+        }
+      }
+
+      setSquad(squadList);
       setIsReady(true);
+
+      // Background cloud sync & fetch live leaderboard
+      try {
+        const myUser = squadList.find((s) => s.isMe) || squadList[0];
+        await syncMyProfileToCloud(myUser);
+        const cloudSquad = await fetchCloudSquad();
+        if (cloudSquad && cloudSquad.length > 0) {
+          setSquad(cloudSquad);
+        }
+      } catch (err) {
+        console.warn('Initial cloud sync error:', err);
+      }
     });
   }, []);
 
@@ -117,7 +147,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [tasks, profile.soundEnabled]);
 
-  // Handle saving new Personal Record (automatically updates Bench in Squad)
+  // Handle saving new Personal Record (automatically updates Bench in Squad & syncs to cloud)
   const handleSaveRecord = (newRecord) => {
     setRecords([newRecord, ...records]);
     // If Bench Press, update Squad
@@ -127,6 +157,8 @@ export default function App() {
         member.isMe ? { ...member, bench: newRecord.weight } : member
       );
       setSquad(updatedSquad);
+      const myUser = updatedSquad.find((m) => m.isMe);
+      if (myUser) syncMyProfileToCloud(myUser);
     }
   };
 
@@ -191,11 +223,13 @@ export default function App() {
     };
     setHistory([histItem, ...history]);
 
-    // 3. Increment User's Streak and Workouts in Squad
+    // 3. Increment User's Streak and Workouts in Squad & sync to cloud
     const updatedSquad = squad.map((m) =>
       m.isMe ? { ...m, streak: (m.streak || 0) + 1, workouts: (m.workouts || 0) + 1 } : m
     );
     setSquad(updatedSquad);
+    const myUser = updatedSquad.find((m) => m.isMe);
+    if (myUser) syncMyProfileToCloud(myUser);
   };
 
   // Update profile from settings modal
