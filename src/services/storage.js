@@ -73,7 +73,7 @@ export const DEFAULT_TASKS = [
   }
 ];
 
-// 3. Initial Squad Leaderboard (User + 3 friends)
+// 3. Initial Squad Leaderboard (Clean: Only User, no fake demo bots)
 export const DEFAULT_SQUAD = [
   {
     id: 'user_me',
@@ -85,39 +85,6 @@ export const DEFAULT_SQUAD = [
     bicep: 40,
     workouts: 32,
     avatarId: 'titan'
-  },
-  {
-    id: 'friend_1',
-    name: "Макс 'Iron' Коваль",
-    isMe: false,
-    streak: 24,
-    bench: 110,
-    squat: 140,
-    bicep: 45,
-    workouts: 56,
-    avatarId: 'boss'
-  },
-  {
-    id: 'friend_2',
-    name: "Данило 'Beast' Шевчук",
-    isMe: false,
-    streak: 9,
-    bench: 85,
-    squat: 105,
-    bicep: 35,
-    workouts: 21,
-    avatarId: 'cyborg'
-  },
-  {
-    id: 'friend_3',
-    name: "Олег 'Viking' Мороз",
-    isMe: false,
-    streak: 4,
-    bench: 75,
-    squat: 95,
-    bicep: 32,
-    workouts: 12,
-    avatarId: 'warrior'
   }
 ];
 
@@ -236,9 +203,16 @@ export const loadData = async () => {
     }
 
     let initialSquad = rawSquad ? JSON.parse(rawSquad) : DEFAULT_SQUAD;
-    initialSquad = initialSquad.map((m) =>
-      m.isMe ? { ...m, name: initialProfile.nickname || m.name, avatarId: initialProfile.avatarId } : m
-    );
+    // Strip out legacy mock demo friends (Макс, Данило, Олег)
+    initialSquad = initialSquad
+      .filter((m) => m.id !== 'friend_1' && m.id !== 'friend_2' && m.id !== 'friend_3')
+      .map((m) =>
+        m.isMe ? { ...m, name: initialProfile.nickname || m.name, avatarId: initialProfile.avatarId } : m
+      );
+
+    if (initialSquad.length === 0) {
+      initialSquad = DEFAULT_SQUAD;
+    }
 
     return {
       tasks: rawTasks ? JSON.parse(rawTasks) : DEFAULT_TASKS,

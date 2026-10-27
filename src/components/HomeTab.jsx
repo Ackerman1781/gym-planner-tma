@@ -113,32 +113,32 @@ export const HomeTab = ({
             </div>
           </div>
 
-          {/* Squad Rank Status */}
+          {/* Personal Record / Best Lift Widget */}
           <div
             onClick={() => {
               haptic.selection();
-              setTab('squad');
+              setIsAddingPR(true);
             }}
             className="bg-[#11141D] border border-[#222838] hover:border-[#CCFF00]/50 rounded-3xl p-4 flex flex-col justify-between active-press cursor-pointer"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-[#8E95A5] font-stat">
-                SQUAD ТОР
+                РЕКОРД (1RM)
               </span>
-              <PodiumBadge place={userRankPosition} size={18} />
+              <Trophy size={18} className="text-[#CCFF00]" />
             </div>
 
             <div>
               <div className="text-2xl font-black font-stat text-[#CCFF00] drop-shadow-[0_0_6px_rgba(204,255,0,0.3)]">
-                #{userRankPosition}
+                {records?.[0]?.weight || 95} <span className="text-sm font-normal text-white">КГ</span>
               </div>
-              <span className="text-xs font-bold text-[#8E95A5] uppercase block mt-0.5">
-                У рейтингу команди
+              <span className="text-xs font-bold text-[#8E95A5] uppercase block mt-0.5 truncate">
+                {records?.[0]?.exercise || 'Жим штанги'}
               </span>
             </div>
 
             <div className="flex items-center justify-between text-[10px] font-black uppercase text-[#8E95A5] mt-3 font-stat">
-              <span>{sortedSquad.length} УЧАСНИКІВ</span>
+              <span>{records.length} РЕКОРДІВ</span>
               <ArrowRight size={12} className="text-[#CCFF00]" />
             </div>
           </div>
